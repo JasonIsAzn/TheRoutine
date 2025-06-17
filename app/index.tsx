@@ -1,11 +1,25 @@
-import { View, Text } from "react-native";
+import { useEffect } from 'react';
+import { View, ActivityIndicator } from 'react-native';
+import { useRouter } from 'expo-router';
+import { useAuth } from '../contexts/AuthContext';
 
 export default function Index() {
+    const { user, ready } = useAuth();
+    const router = useRouter();
+
+    useEffect(() => {
+        if (!ready) return;
+
+        if (user) {
+            router.replace('/home/index');
+        } else {
+            router.replace('/login');
+        }
+    }, [ready, user]);
+
     return (
-        <View className="flex-1 items-center justify-center bg-white">
-            <Text className="text-center text-base text-gray-800">
-                Edit <Text className="font-semibold">app/index.tsx</Text> to edit this screen.
-            </Text>
+        <View className="flex-1 justify-center items-center bg-white">
+            <ActivityIndicator size="large" />
         </View>
     );
 }
