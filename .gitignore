@@ -26,3 +26,15 @@ android
 
 expo-env.d.ts
 # @end expo-cli
+
+# .NET 
+TheRoutineWeb/bin/
+TheRoutineWeb/obj/
+TheRoutineWeb/Debug/
+TheRoutineWeb/Release/
+
+TheRoutineWeb/*.user
+TheRoutineWeb/*.suo
+TheRoutineWeb/*.csproj.user
+
+TheRoutineWeb/publish/
