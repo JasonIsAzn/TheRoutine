@@ -11,7 +11,7 @@ export default function Index() {
         if (!ready) return;
 
         if (user) {
-            router.replace('/home/index');
+            router.replace('/home');
         } else {
             router.replace('/login');
         }

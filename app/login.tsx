@@ -24,7 +24,7 @@ export default function AuthScreen() {
                     return;
                 }
             }
-            router.replace('/home/index');
+            router.replace('/home');
         } catch (err) {
             console.error(err);
             setError('Something went wrong.');
