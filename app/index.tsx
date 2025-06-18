@@ -13,7 +13,7 @@ export default function Index() {
         if (user) {
             router.replace('/home');
         } else {
-            router.replace('/login');
+            router.replace('/auth');
         }
     }, [ready, user]);
 
