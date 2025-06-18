@@ -24,8 +24,8 @@ namespace TheRoutineWeb.Controllers.Api
             if (user == null)
                 return Unauthorized(new { message = "Invalid credentials" });
 
-            // For now, just return user ID and name
-            return Ok(new { user.Id, user.Name });
+
+            return Ok(new { user.Id, user.Name, user.Email });
         }
 
         [HttpPost("register")]
@@ -44,7 +44,7 @@ namespace TheRoutineWeb.Controllers.Api
             _context.Users.Add(user);
             _context.SaveChanges();
 
-            return Ok(new { user.Id, user.Name });
+            return Ok(new { user.Id, user.Name, user.Email });
         }
     }
     public class LoginRequest
