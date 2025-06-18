@@ -12,8 +12,8 @@ interface AuthUser {
 export interface AuthContextType {
     user: AuthUser | null;
     ready: boolean;
-    loginWithApple: (appleId: string, email: string, name: string) => Promise<boolean>;
-    login: (email: string, password: string) => Promise<boolean>;
+    loginWithApple: (appleId: string, email: string, name: string) => Promise<void>;
+    login: (email: string, password: string) => Promise<void>;
     register: (email: string, password: string, name: string) => Promise<void>;
     logout: () => void;
 }
@@ -33,31 +33,19 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         loadUser();
     }, []);
 
-    const loginWithApple = async (appleId: string, email: string, name: string): Promise<boolean> => {
-        try {
-            const data = await apiLoginWithApple(appleId, email, name);
-            setUser(data);
-            await AsyncStorage.setItem('user', JSON.stringify(data));
-            return true;
-        } catch (error) {
-            console.error('Apple login failed:', error);
-            return false;
-        }
+    const loginWithApple = async (appleId: string, email: string, name: string): Promise<void> => {
+        const data = await apiLoginWithApple(appleId, email, name);
+        setUser(data);
+        await AsyncStorage.setItem('user', JSON.stringify(data));
     };
 
-    const login = async (email: string, password: string): Promise<boolean> => {
-        try {
-            const data = await apiLogin(email, password);
-            setUser(data);
-            await AsyncStorage.setItem('user', JSON.stringify(data));
-            return true;
-        } catch (error) {
-            console.error('Login failed:', error);
-            return false;
-        }
+    const login = async (email: string, password: string): Promise<void> => {
+        const data = await apiLogin(email, password);
+        setUser(data);
+        await AsyncStorage.setItem('user', JSON.stringify(data));
     };
 
-    const register = async (email: string, password: string, name: string) => {
+    const register = async (email: string, password: string, name: string): Promise<void> => {
         const data = await apiRegister(email, password, name);
         setUser(data);
         await AsyncStorage.setItem('user', JSON.stringify(data));
