@@ -19,11 +19,16 @@ namespace TheRoutineWeb.Controllers.Api
         [HttpPost("login")]
         public IActionResult Login([FromBody] LoginRequest request)
         {
-            var user = _context.Users.FirstOrDefault(u => u.Email == request.Email && u.Password == request.Password);
+            var user = _context.Users.FirstOrDefault(u => u.Email == request.Email);
 
             if (user == null)
                 return Unauthorized(new { message = "Invalid credentials" });
 
+            if (!string.IsNullOrEmpty(user.AppleId))
+                return Unauthorized(new { message = "This account uses Apple Sign-In. Please log in with Apple." });
+
+            if (user.Password != request.Password)
+                return Unauthorized(new { message = "Invalid credentials" });
 
             return Ok(new { user.Id, user.Name, user.Email });
         }
@@ -52,10 +57,17 @@ namespace TheRoutineWeb.Controllers.Api
         {
             var user = _context.Users.FirstOrDefault(u => u.AppleId == request.AppleId);
 
-            // If not found, fallback to email (covers older users or first login with shared email)
+            // If no match by AppleId, fallback to email
             if (user == null)
             {
                 user = _context.Users.FirstOrDefault(u => u.Email == request.Email);
+
+                if (user != null)
+                {
+                    user.AppleId = request.AppleId;
+                    _context.Users.Update(user);
+                    _context.SaveChanges();
+                }
             }
 
             if (user == null)
