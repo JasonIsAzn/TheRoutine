@@ -46,6 +46,33 @@ namespace TheRoutineWeb.Controllers.Api
 
             return Ok(new { user.Id, user.Name, user.Email });
         }
+
+        [HttpPost("apple-login")]
+        public IActionResult AppleLogin([FromBody] AppleLoginRequest request)
+        {
+            var user = _context.Users.FirstOrDefault(u => u.AppleId == request.AppleId);
+
+            // If not found, fallback to email (covers older users or first login with shared email)
+            if (user == null)
+            {
+                user = _context.Users.FirstOrDefault(u => u.Email == request.Email);
+            }
+
+            if (user == null)
+            {
+                user = new User
+                {
+                    Email = request.Email,
+                    Name = request.Name,
+                    AppleId = request.AppleId,
+                };
+                _context.Users.Add(user);
+                _context.SaveChanges();
+            }
+
+            return Ok(new { user.Id, user.Name, user.Email });
+        }
+
     }
     public class LoginRequest
     {
@@ -60,4 +87,10 @@ namespace TheRoutineWeb.Controllers.Api
         public string Name { get; set; } = string.Empty;
     }
 
+    public class AppleLoginRequest
+    {
+        public string AppleId { get; set; } = string.Empty;
+        public string Email { get; set; } = string.Empty;
+        public string Name { get; set; } = string.Empty;
+    }
 }
