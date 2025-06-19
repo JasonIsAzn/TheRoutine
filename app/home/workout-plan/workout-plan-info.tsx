@@ -152,6 +152,12 @@ export default function WorkoutPlanInfoModal() {
     const handleUpdate = async () => {
         if (!user) return;
 
+        const hasEmptySelectedDay = days.some(day => day.selected && day.exercises.length === 0);
+        if (hasEmptySelectedDay) {
+            Alert.alert("Incomplete Plan", "Every selected day must have at least one exercise.");
+            return;
+        }
+
         const payload = {
             userId: user.id,
             name: planName,

@@ -130,6 +130,12 @@ export default function CreateWorkoutPlanScreen() {
     const handleCreate = async () => {
         if (!user) return;
 
+        const hasEmptySelectedDay = days.some(day => day.selected && day.exercises.length === 0);
+        if (hasEmptySelectedDay) {
+            Alert.alert("Incomplete Plan", "Every selected day must have at least one exercise.");
+            return;
+        }
+
         const payload = {
             userId: user.id,
             name: planName,
