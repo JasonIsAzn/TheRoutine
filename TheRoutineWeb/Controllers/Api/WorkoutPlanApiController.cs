@@ -1,0 +1,121 @@
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+using TheRoutineWeb.Data;
+using TheRoutineWeb.Models;
+
+namespace TheRoutineWeb.Controllers.Api
+{
+    [Route("api/[controller]")]
+    [ApiController]
+    public class WorkoutPlanApiController : ControllerBase
+    {
+        private readonly AppDbContext _context;
+
+        public WorkoutPlanApiController(AppDbContext context)
+        {
+            _context = context;
+        }
+
+        [HttpGet("active-plan")]
+        public IActionResult GetActivePlan([FromQuery] int userId)
+        {
+            var plan = _context.WorkoutPlans
+                .Include(p => p.WorkoutDays.OrderBy(d => d.Order))
+                    .ThenInclude(d => d.Exercises.OrderBy(e => e.Order))
+                .FirstOrDefault(p => p.UserId == userId && p.IsActive);
+
+            if (plan == null)
+                return NotFound(new { message = "No active workout plan found." });
+
+            return Ok(plan);
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> CreateWorkoutPlan([FromBody] WorkoutPlanCreateRequest request)
+        {
+            // Soft-deactivate any existing plan for the user
+            var existingPlan = await _context.WorkoutPlans
+                .Where(p => p.UserId == request.UserId && p.IsActive)
+                .FirstOrDefaultAsync();
+
+            if (existingPlan != null)
+            {
+                existingPlan.IsActive = false;
+                existingPlan.EndedAt = DateTime.UtcNow;
+            }
+
+            var plan = new WorkoutPlan
+            {
+                UserId = request.UserId,
+                Name = request.Name,
+                SplitType = request.SplitType,
+                CycleLength = request.CycleLength,
+                CreatedAt = DateTime.UtcNow,
+                IsActive = true,
+                WorkoutDays = request.WorkoutDays.Select(day => new WorkoutDay
+                {
+                    Label = day.Label,
+                    Order = day.Order,
+                    Exercises = day.Exercises.Select(ex => new WorkoutExercise
+                    {
+                        Name = ex.Name,
+                        Muscles = ex.Muscles,
+                        IsOptional = ex.IsOptional,
+                        Order = ex.Order
+                    }).ToList()
+                }).ToList()
+            };
+
+            _context.WorkoutPlans.Add(plan);
+            await _context.SaveChangesAsync();
+
+            return Ok(new { message = "Workout plan created", planId = plan.Id });
+        }
+
+        [HttpDelete("deactivate")]
+        public async Task<IActionResult> DeactivateActivePlan([FromQuery] int userId)
+        {
+            var existingPlan = await _context.WorkoutPlans
+                .Where(p => p.UserId == userId && p.IsActive)
+                .FirstOrDefaultAsync();
+
+            if (existingPlan == null)
+            {
+                return NotFound(new { message = "No active workout plan to delete." });
+            }
+
+            existingPlan.IsActive = false;
+            existingPlan.EndedAt = DateTime.UtcNow;
+
+            await _context.SaveChangesAsync();
+
+            return Ok(new { message = "Active workout plan deactivated." });
+        }
+
+
+    }
+
+    public class WorkoutPlanCreateRequest
+    {
+        public int UserId { get; set; }
+        public string Name { get; set; } = string.Empty;
+        public string SplitType { get; set; } = string.Empty;
+        public int CycleLength { get; set; }
+        public List<WorkoutDayCreateRequest> WorkoutDays { get; set; } = new();
+    }
+
+    public class WorkoutDayCreateRequest
+    {
+        public string Label { get; set; } = string.Empty;
+        public int Order { get; set; }
+        public List<WorkoutExerciseCreateRequest> Exercises { get; set; } = new();
+    }
+
+    public class WorkoutExerciseCreateRequest
+    {
+        public string Name { get; set; } = string.Empty;
+        public List<string> Muscles { get; set; } = new();
+        public bool IsOptional { get; set; }
+        public int Order { get; set; }
+    }
+}
