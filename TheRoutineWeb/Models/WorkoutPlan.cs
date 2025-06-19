@@ -11,6 +11,8 @@ namespace TheRoutineWeb.Models
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
         public DateTime? EndedAt { get; set; }
 
+        public string SplitType { get; set; } = string.Empty;
+
         public ICollection<WorkoutDay> WorkoutDays { get; set; } = new List<WorkoutDay>();
     }
 }
