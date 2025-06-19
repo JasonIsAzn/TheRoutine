@@ -14,13 +14,6 @@ namespace TheRoutineWeb.Data
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
-            modelBuilder.Entity<WorkoutPlan>()
-                .Property(p => p.Days)
-                .HasConversion(
-                    v => string.Join(",", v),
-                    v => v.Split(",", StringSplitOptions.RemoveEmptyEntries).ToList()
-                );
-
             modelBuilder.Entity<WorkoutExercise>()
                 .Property(e => e.Muscles)
                 .HasConversion(
