@@ -4,6 +4,7 @@ import { useAuth } from '../../../contexts/AuthContext';
 import { createWorkoutPlan } from '../../../api/workoutPlan';
 import { router } from 'expo-router';
 import { WorkoutExercise } from 'types/workout';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 
 interface EditableWorkoutDay {
@@ -142,7 +143,14 @@ export default function CreateWorkoutPlanScreen() {
         };
 
         try {
-            await createWorkoutPlan(payload);
+            const { planId, planGroupId, version } = await createWorkoutPlan(payload);
+            const activePlanData = {
+                ...payload,
+                planId: planId,
+                planGroupId: planGroupId,
+                version: version,
+            };
+            await AsyncStorage.setItem('activePlan', JSON.stringify(activePlanData));
             router.replace('/home/workout-plan/workout-session');
         } catch (err) {
             console.error(err);
