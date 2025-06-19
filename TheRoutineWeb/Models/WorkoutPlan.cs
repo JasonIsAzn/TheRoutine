@@ -4,6 +4,8 @@ namespace TheRoutineWeb.Models
     {
         public int Id { get; set; }
         public int UserId { get; set; }
+        public int PlanGroupId { get; set; }
+        public int Version { get; set; }
         public string Name { get; set; } = string.Empty;
         public int CycleLength { get; set; }
         public bool IsActive { get; set; } = true;

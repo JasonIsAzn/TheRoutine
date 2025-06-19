@@ -31,6 +31,8 @@ namespace TheRoutineWeb.Controllers.Api
             {
                 Id = plan.Id,
                 UserId = plan.UserId,
+                PlanGroupId = plan.PlanGroupId,
+                Version = plan.Version,
                 Name = plan.Name,
                 SplitType = plan.SplitType,
                 CycleLength = plan.CycleLength,
@@ -61,15 +63,24 @@ namespace TheRoutineWeb.Controllers.Api
         [HttpPost]
         public async Task<IActionResult> CreateWorkoutPlan([FromBody] WorkoutPlanCreateRequest request)
         {
-            // Soft-deactivate any existing plan for the user
             var existingPlan = await _context.WorkoutPlans
                 .Where(p => p.UserId == request.UserId && p.IsActive)
                 .FirstOrDefaultAsync();
+
+            int planGroupId;
+            int version;
 
             if (existingPlan != null)
             {
                 existingPlan.IsActive = false;
                 existingPlan.EndedAt = DateTime.UtcNow;
+                planGroupId = existingPlan.PlanGroupId;
+                version = existingPlan.Version + 1;
+            }
+            else
+            {
+                planGroupId = 0; // Temp value, will use new ID
+                version = 0;
             }
 
             var plan = new WorkoutPlan
@@ -80,6 +91,8 @@ namespace TheRoutineWeb.Controllers.Api
                 CycleLength = request.CycleLength,
                 CreatedAt = DateTime.UtcNow,
                 IsActive = true,
+                PlanGroupId = planGroupId,
+                Version = version,
                 WorkoutDays = request.WorkoutDays.Select(day => new WorkoutDay
                 {
                     Label = day.Label,
@@ -97,7 +110,20 @@ namespace TheRoutineWeb.Controllers.Api
             _context.WorkoutPlans.Add(plan);
             await _context.SaveChangesAsync();
 
-            return Ok(new { message = "Workout plan created", planId = plan.Id });
+            // Update PlanGroupId to match Id if it was the first one
+            if (planGroupId == 0)
+            {
+                plan.PlanGroupId = plan.Id;
+                await _context.SaveChangesAsync();
+            }
+
+            return Ok(new
+            {
+                message = "Workout plan created",
+                planId = plan.Id,
+                planGroupId = plan.PlanGroupId,
+                version = plan.Version
+            });
         }
 
         [HttpDelete("deactivate")]
@@ -151,6 +177,8 @@ namespace TheRoutineWeb.Controllers.Api
     {
         public int Id { get; set; }
         public int UserId { get; set; }
+        public int PlanGroupId { get; set; }
+        public int Version { get; set; }
         public string Name { get; set; } = string.Empty;
         public string SplitType { get; set; } = string.Empty;
         public int CycleLength { get; set; }
