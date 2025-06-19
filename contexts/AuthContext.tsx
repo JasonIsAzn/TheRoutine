@@ -2,12 +2,7 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { login as apiLogin, register as apiRegister, loginWithApple as apiLoginWithApple } from '../api/auth';
-
-interface AuthUser {
-    id: number;
-    name: string;
-    email: string;
-}
+import { AuthUser } from 'types/user';
 
 export interface AuthContextType {
     user: AuthUser | null;
