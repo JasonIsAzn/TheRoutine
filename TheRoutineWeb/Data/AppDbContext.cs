@@ -8,5 +8,20 @@ namespace TheRoutineWeb.Data
         public AppDbContext(DbContextOptions<AppDbContext> options) : base(options) { }
 
         public DbSet<User> Users { get; set; }
+        public DbSet<WorkoutPlan> WorkoutPlans { get; set; }
+        public DbSet<WorkoutDay> WorkoutDays { get; set; }
+        public DbSet<WorkoutExercise> WorkoutExercises { get; set; }
+
+        protected override void OnModelCreating(ModelBuilder modelBuilder)
+        {
+            modelBuilder.Entity<WorkoutExercise>()
+                .Property(e => e.Muscles)
+                .HasConversion(
+                    v => string.Join(",", v),
+                    v => v.Split(",", StringSplitOptions.RemoveEmptyEntries).ToList()
+                );
+
+            base.OnModelCreating(modelBuilder);
+        }
     }
 }
