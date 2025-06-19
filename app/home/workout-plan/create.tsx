@@ -141,8 +141,6 @@ export default function CreateWorkoutPlanScreen() {
             })),
         };
 
-        console.log('Creating workout plan payload:', JSON.stringify(payload, null, 2));
-
         try {
             await createWorkoutPlan(payload);
             router.replace('/home/workout-plan/workout-session');

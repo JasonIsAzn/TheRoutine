@@ -16,6 +16,7 @@ export default function WorkoutPlanInfoModal() {
             await deactivateWorkoutPlan(user.id);
             await AsyncStorage.removeItem('activePlan');
             Alert.alert('Workout plan deleted.');
+            router.dismiss();
             router.replace('/home/workout-plan');
         } catch (err) {
             console.error(err);
