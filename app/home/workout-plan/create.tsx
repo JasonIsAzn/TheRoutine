@@ -1,72 +1,150 @@
-import { View, Text, Pressable, Alert } from 'react-native';
-import { createWorkoutPlan } from '../../../api/workoutPlan';
+import { useState } from 'react';
+import { View, Text, TextInput, Pressable, ScrollView, Alert } from 'react-native';
 import { useAuth } from '../../../contexts/AuthContext';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import { createWorkoutPlan } from '../../../api/workoutPlan';
 import { router } from 'expo-router';
+import { WorkoutExercise } from 'types/workout';
+
+
+interface EditableWorkoutDay {
+    label: string;
+    order: number;
+    selected: boolean;
+    exercises: WorkoutExercise[];
+}
+
+const weekdays = ['S', 'M', 'T', 'W', 'T', 'F', 'S'];
+const fullDayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
 
 export default function CreateWorkoutPlanScreen() {
     const { user } = useAuth();
+
+    const [planName, setPlanName] = useState('Default Plan Name');
+    const [days, setDays] = useState<EditableWorkoutDay[]>(
+        fullDayNames.map((day, i) => ({
+            order: i,
+            selected: false,
+            label: `Default ${day} Name`,
+            exercises: [],
+        }))
+    );
+
+    const toggleDay = (index: number) => {
+        setDays(prev =>
+            prev.map((d, i) => (i === index ? { ...d, selected: !d.selected } : d))
+        );
+    };
+
+    const updateLabel = (index: number, label: string) => {
+        setDays(prev => prev.map((d, i) => (i === index ? { ...d, label } : d)));
+    };
+
+    const addExercise = (dayIndex: number) => {
+        setDays(prev =>
+            prev.map((d, i) =>
+                i === dayIndex
+                    ? {
+                        ...d,
+                        exercises: [
+                            ...d.exercises,
+                            { name: '', muscles: [''], isOptional: false, order: d.exercises.length },
+                        ],
+                    }
+                    : d
+            )
+        );
+    };
+
+    const updateExercise = (
+        dayIndex: number,
+        exIndex: number,
+        field: keyof WorkoutExercise,
+        value: any
+    ) => {
+        setDays(prev =>
+            prev.map((d, i) =>
+                i === dayIndex
+                    ? {
+                        ...d,
+                        exercises: d.exercises.map((ex, j) =>
+                            j === exIndex ? { ...ex, [field]: value } : ex
+                        ),
+                    }
+                    : d
+            )
+        );
+    };
+
+    const updateMuscle = (dayIndex: number, exIndex: number, mIndex: number, value: string) => {
+        setDays(prev =>
+            prev.map((d, i) => {
+                if (i !== dayIndex) return d;
+                const updatedExercises = d.exercises.map((ex, j) => {
+                    if (j !== exIndex) return ex;
+                    const newMuscles = [...ex.muscles];
+                    newMuscles[mIndex] = value;
+                    return { ...ex, muscles: newMuscles };
+                });
+                return { ...d, exercises: updatedExercises };
+            })
+        );
+    };
+
+    const addMuscle = (dayIndex: number, exIndex: number) => {
+        setDays(prev =>
+            prev.map((d, i) => {
+                if (i !== dayIndex) return d;
+                const updatedExercises = d.exercises.map((ex, j) => {
+                    if (j !== exIndex) return ex;
+                    return { ...ex, muscles: [...ex.muscles, ''] };
+                });
+                return { ...d, exercises: updatedExercises };
+            })
+        );
+    };
+
+    const removeMuscle = (dayIndex: number, exIndex: number, mIndex: number) => {
+        setDays(prev =>
+            prev.map((d, i) => {
+                if (i !== dayIndex) return d;
+                const updatedExercises = d.exercises.map((ex, j) => {
+                    if (j !== exIndex) return ex;
+                    return { ...ex, muscles: ex.muscles.filter((_, idx) => idx !== mIndex) };
+                });
+                return { ...d, exercises: updatedExercises };
+            })
+        );
+    };
+
+    const deleteExercise = (dayIndex: number, exIndex: number) => {
+        setDays(prev =>
+            prev.map((d, i) =>
+                i === dayIndex
+                    ? { ...d, exercises: d.exercises.filter((_, j) => j !== exIndex) }
+                    : d
+            )
+        );
+    };
 
     const handleCreate = async () => {
         if (!user) return;
 
         const payload = {
             userId: user.id,
-            name: 'Test Plan',
-            splitType: 'Custom 7-Day',
+            name: planName,
+            splitType: 'day-split',
             cycleLength: 7,
-            workoutDays: [
-                {
-                    label: 'Push',
-                    order: 0,
-                    exercises: [
-                        { name: 'Bench Press', muscles: ['chest', 'triceps'], isOptional: false, order: 0 }
-                    ]
-                },
-                {
-                    label: 'Pull',
-                    order: 1,
-                    exercises: [
-                        { name: 'Deadlift', muscles: ['back', 'hamstrings'], isOptional: false, order: 0 }
-                    ]
-                },
-                {
-                    label: 'Legs',
-                    order: 2,
-                    exercises: [
-                        { name: 'Squats', muscles: ['quads', 'glutes'], isOptional: false, order: 0 }
-                    ]
-                },
-                {
-                    label: 'Rest Day 1',
-                    order: 3,
-                    exercises: []
-                },
-                {
-                    label: 'Upper Body',
-                    order: 4,
-                    exercises: [
-                        { name: 'Overhead Press', muscles: ['shoulders'], isOptional: false, order: 0 }
-                    ]
-                },
-                {
-                    label: 'Lower Body',
-                    order: 5,
-                    exercises: [
-                        { name: 'Romanian Deadlift', muscles: ['hamstrings'], isOptional: false, order: 0 }
-                    ]
-                },
-                {
-                    label: 'Rest Day 2',
-                    order: 6,
-                    exercises: []
-                }
-            ]
+            workoutDays: days.map(day => ({
+                label: day.selected ? day.label : 'Rest Day',
+                order: day.order,
+                exercises: day.selected ? day.exercises : [],
+            })),
         };
 
+        console.log('Creating workout plan payload:', JSON.stringify(payload, null, 2));
+
         try {
-            const result = await createWorkoutPlan(payload);
-            await AsyncStorage.setItem('activePlan', JSON.stringify(payload));
+            await createWorkoutPlan(payload);
             router.replace('/home/workout-plan/workout-session');
         } catch (err) {
             console.error(err);
@@ -74,19 +152,106 @@ export default function CreateWorkoutPlanScreen() {
         }
     };
 
+
     return (
-        <View className="flex-1 justify-center items-center bg-white px-4">
-            <Text className="text-2xl font-bold mb-6 text-center">
-                Create Workout Plan
-            </Text>
-            <Pressable
-                className="bg-green-600 px-6 py-3 rounded"
-                onPress={handleCreate}
-            >
-                <Text className="text-white text-lg font-semibold">
-                    Create with Placeholder Plan
-                </Text>
+        <ScrollView className="flex-1 bg-white px-4 py-6">
+            <Text className="text-2xl font-bold text-center mb-4">Create Workout Plan</Text>
+            <Text className="text-sm font-semibold mb-1">Plan Name</Text>
+            <TextInput
+                className="border border-gray-300 rounded px-3 py-2 mb-4"
+                placeholder="Plan Name"
+                value={planName}
+                onChangeText={setPlanName}
+            />
+
+            <View className="flex-row flex-wrap justify-between mb-4">
+                {weekdays.map((w, i) => (
+                    <Pressable
+                        key={i}
+                        onPress={() => toggleDay(i)}
+                        className={`flex-1 m-1 py-2 rounded-full border items-center ${days[i].selected ? 'bg-blue-600 border-blue-600' : 'border-gray-300'
+                            }`}
+                    >
+                        <Text className={days[i].selected ? 'text-white' : 'text-black'}>
+                            {w}
+                        </Text>
+                    </Pressable>
+                ))}
+            </View>
+
+            {days.map((day, i) =>
+                day.selected ? (
+                    <View key={i} className="mb-6 border-b border-gray-200 pb-4">
+                        <Text className="text-lg font-semibold mb-1">{fullDayNames[i]}</Text>
+                        <TextInput
+                            className="border border-gray-300 rounded px-3 py-2 mb-2"
+                            value={day.label}
+                            onChangeText={text => updateLabel(i, text)}
+                            placeholder="Day label"
+                        />
+                        {day.exercises.map((ex, j) => (
+                            <View key={j} className="mb-3 ml-2">
+                                <TextInput
+                                    className="border border-gray-300 rounded px-3 py-1 mb-1"
+                                    placeholder="Exercise name"
+                                    value={ex.name}
+                                    onChangeText={text => updateExercise(i, j, 'name', text)}
+                                />
+                                <TextInput
+                                    className="border border-gray-300 rounded px-3 py-1 mb-1"
+                                    placeholder="Order"
+                                    keyboardType="numeric"
+                                    value={String(ex.order)}
+                                    onChangeText={text => updateExercise(i, j, 'order', parseInt(text))}
+                                />
+
+                                {ex.muscles.map((muscle, mIndex) => (
+                                    <View key={mIndex} className="flex-row items-center mb-1">
+                                        <TextInput
+                                            className="flex-1 border border-gray-300 rounded px-3 py-1 mr-2"
+                                            placeholder={`Muscle ${mIndex + 1}`}
+                                            value={muscle}
+                                            onChangeText={text => updateMuscle(i, j, mIndex, text)}
+                                        />
+                                        <Pressable
+                                            onPress={() => removeMuscle(i, j, mIndex)}
+                                            className="w-16 h-8 bg-red-500 rounded justify-center items-center"
+                                        >
+                                            <Text className="text-white text-base font-bold">X</Text>
+                                        </Pressable>
+
+                                    </View>
+                                ))}
+
+                                <Pressable
+                                    className="bg-blue-600 px-2 py-1 rounded self-start mb-2"
+                                    onPress={() => addMuscle(i, j)}
+                                >
+                                    <Text className="text-white text-xs">+ Add Muscle</Text>
+                                </Pressable>
+
+                                <Pressable
+                                    className="bg-red-500 rounded px-2 py-1 self-start"
+                                    onPress={() => deleteExercise(i, j)}
+                                >
+                                    <Text className="text-white text-xs">Delete Exercise</Text>
+                                </Pressable>
+                            </View>
+                        ))}
+
+                        <Pressable
+                            className="bg-green-600 rounded px-4 py-2"
+                            onPress={() => addExercise(i)}
+                        >
+                            <Text className="text-white text-sm">+ Add Exercise</Text>
+                        </Pressable>
+                    </View>
+                ) : null
+            )}
+
+            <Pressable className="mt-6 bg-blue-600 px-6 py-3 rounded" onPress={handleCreate}>
+                <Text className="text-white text-center font-semibold text-lg">Create Plan</Text>
             </Pressable>
-        </View>
+        </ScrollView>
     );
 }

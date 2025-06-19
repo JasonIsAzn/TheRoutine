@@ -27,7 +27,35 @@ namespace TheRoutineWeb.Controllers.Api
             if (plan == null)
                 return NotFound(new { message = "No active workout plan found." });
 
-            return Ok(plan);
+            var result = new WorkoutPlanDto
+            {
+                Id = plan.Id,
+                UserId = plan.UserId,
+                Name = plan.Name,
+                SplitType = plan.SplitType,
+                CycleLength = plan.CycleLength,
+                IsActive = plan.IsActive,
+                CreatedAt = plan.CreatedAt,
+                EndedAt = plan.EndedAt,
+                WorkoutDays = plan.WorkoutDays
+                    .OrderBy(d => d.Order)
+                    .Select(d => new WorkoutDayDto
+                    {
+                        Label = d.Label,
+                        Order = d.Order,
+                        Exercises = d.Exercises
+                            .OrderBy(e => e.Order)
+                            .Select(e => new WorkoutExerciseDto
+                            {
+                                Name = e.Name,
+                                Muscles = e.Muscles,
+                                IsOptional = e.IsOptional,
+                                Order = e.Order
+                            }).ToList()
+                    }).ToList()
+            };
+
+            return Ok(result);
         }
 
         [HttpPost]
@@ -118,4 +146,33 @@ namespace TheRoutineWeb.Controllers.Api
         public bool IsOptional { get; set; }
         public int Order { get; set; }
     }
+
+    public class WorkoutPlanDto
+    {
+        public int Id { get; set; }
+        public int UserId { get; set; }
+        public string Name { get; set; } = string.Empty;
+        public string SplitType { get; set; } = string.Empty;
+        public int CycleLength { get; set; }
+        public bool IsActive { get; set; }
+        public DateTime CreatedAt { get; set; }
+        public DateTime? EndedAt { get; set; }
+        public List<WorkoutDayDto> WorkoutDays { get; set; } = new();
+    }
+
+    public class WorkoutDayDto
+    {
+        public string Label { get; set; } = string.Empty;
+        public int Order { get; set; }
+        public List<WorkoutExerciseDto> Exercises { get; set; } = new();
+    }
+
+    public class WorkoutExerciseDto
+    {
+        public string Name { get; set; } = string.Empty;
+        public List<string> Muscles { get; set; } = new();
+        public bool IsOptional { get; set; }
+        public int Order { get; set; }
+    }
+
 }
