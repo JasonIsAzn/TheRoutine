@@ -35,16 +35,12 @@ namespace TheRoutineWeb.Controllers.Api
                 .Include(p => p.WorkoutDays.OrderBy(d => d.Order))
                 .FirstOrDefaultAsync(p => p.Id == request.WorkoutPlanId && p.UserId == request.UserId && p.IsActive);
 
+
             if (plan == null)
                 return BadRequest(new { message = "Active workout plan not found." });
 
-            // Determine DayOrderMap for day-split (expand this logic as needed)
-            int startIndex = (int)request.StartDate.DayOfWeek;
-            int cycleLength = plan.CycleLength;
-
-            var map = Enumerable.Range(startIndex, cycleLength)
-                                .Select(i => i % cycleLength)
-                                .ToList();
+            int today = (int)request.StartDate.DayOfWeek;
+            var map = Enumerable.Range(today, 7 - today).ToList();
 
             var cycle = new WorkoutCycle
             {
