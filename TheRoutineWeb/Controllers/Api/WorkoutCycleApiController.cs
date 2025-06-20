@@ -61,22 +61,6 @@ namespace TheRoutineWeb.Controllers.Api
 
             return Ok(new { message = "Workout cycle created.", cycleId = cycle.Id });
         }
-
-        [HttpPatch("{cycleId}/swap-days")]
-        public async Task<IActionResult> SwapDayOrder(int cycleId, [FromBody] SwapDayOrderRequest request)
-        {
-            var cycle = await _context.WorkoutCycles.FindAsync(cycleId);
-            if (cycle == null || !cycle.IsActive)
-                return NotFound(new { message = "Active cycle not found." });
-
-            if (request.DayOrderMap.Count != cycle.DayOrderMap.Count || request.DayOrderMap.Distinct().Count() != cycle.DayOrderMap.Count)
-                return BadRequest(new { message = "Invalid DayOrderMap." });
-
-            cycle.DayOrderMap = request.DayOrderMap;
-            await _context.SaveChangesAsync();
-
-            return Ok(new { message = "Day order updated." });
-        }
     }
 
     public class CreateCycleRequest

@@ -16,10 +16,3 @@ export const createWorkoutCycle = async (cycleData: {
     const response = await api.post(`/workoutcycleapi`, cycleData);
     return response.data;
 };
-
-export const swapWorkoutCycleDays = async (cycleId: number, dayOrderMap: number[]) => {
-    const response = await api.patch(`/workoutcycleapi/${cycleId}/swap-days`, {
-        dayOrderMap
-    });
-    return response.data;
-};
