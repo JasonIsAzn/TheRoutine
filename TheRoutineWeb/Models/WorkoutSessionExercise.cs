@@ -11,6 +11,8 @@ namespace TheRoutineWeb.Models
         public int Reps { get; set; }
         public float? Weight { get; set; }
         public bool IsOptional { get; set; }
+        public bool IsCompleted { get; set; } = false;
+        public bool IsSkipped { get; set; } = false;
 
         public WorkoutSession WorkoutSession { get; set; } = default!;
     }
