@@ -57,7 +57,7 @@ namespace TheRoutineWeb
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("Id,WorkoutSessionId,Name,Muscles,Order,Sets,Reps,Weight,IsOptional")] WorkoutSessionExercise workoutSessionExercise)
+        public async Task<IActionResult> Create([Bind("Id,WorkoutSessionId,Name,Muscles,Order,Weight,IsOptional")] WorkoutSessionExercise workoutSessionExercise)
         {
             if (ModelState.IsValid)
             {
@@ -91,7 +91,7 @@ namespace TheRoutineWeb
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("Id,WorkoutSessionId,Name,Muscles,Order,Sets,Reps,Weight,IsOptional")] WorkoutSessionExercise workoutSessionExercise)
+        public async Task<IActionResult> Edit(int id, [Bind("Id,WorkoutSessionId,Name,Muscles,Order,Weight,IsOptional")] WorkoutSessionExercise workoutSessionExercise)
         {
             if (id != workoutSessionExercise.Id)
             {

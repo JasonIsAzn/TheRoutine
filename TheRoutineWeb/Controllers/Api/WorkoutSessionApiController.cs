@@ -67,8 +67,6 @@ namespace TheRoutineWeb.Controllers.Api
                     IsCompleted = false,
                     IsSkipped = false,
                     IsDeleted = false,
-                    Sets = 0,
-                    Reps = 0,
                     Weight = null
                 }).ToList()
             };

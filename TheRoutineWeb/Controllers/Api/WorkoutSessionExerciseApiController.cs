@@ -85,7 +85,7 @@ namespace TheRoutineWeb.Controllers.Api
             return Ok(new { message = "Exercise soft-deleted." });
         }
 
-        // PUT update name / sets / reps / weight (optional)
+        // PUT update name / weight (optional)
         [HttpPut("{id}/update")]
         public async Task<IActionResult> UpdateDetails(int id, [FromBody] WorkoutSessionExercise updates)
         {
@@ -94,8 +94,6 @@ namespace TheRoutineWeb.Controllers.Api
 
             exercise.Name = updates.Name;
             exercise.Muscles = updates.Muscles;
-            exercise.Sets = updates.Sets;
-            exercise.Reps = updates.Reps;
             exercise.Weight = updates.Weight;
             await _context.SaveChangesAsync();
 

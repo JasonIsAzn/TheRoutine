@@ -14,7 +14,7 @@
             <div asp-validation-summary="ModelOnly" class="text-danger"></div>
             <div class="form-group">
                 <label asp-for="WorkoutSessionId" class="control-label"></label>
-                <select asp-for="WorkoutSessionId" class ="form-control" asp-items="ViewBag.WorkoutSessionId"></select>
+                <select asp-for="WorkoutSessionId" class="form-control" asp-items="ViewBag.WorkoutSessionId"></select>
             </div>
             <div class="form-group">
                 <label asp-for="Name" class="control-label"></label>
@@ -32,23 +32,14 @@
                 <span asp-validation-for="Order" class="text-danger"></span>
             </div>
             <div class="form-group">
-                <label asp-for="Sets" class="control-label"></label>
-                <input asp-for="Sets" class="form-control" />
-                <span asp-validation-for="Sets" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="Reps" class="control-label"></label>
-                <input asp-for="Reps" class="form-control" />
-                <span asp-validation-for="Reps" class="text-danger"></span>
-            </div>
-            <div class="form-group">
                 <label asp-for="Weight" class="control-label"></label>
                 <input asp-for="Weight" class="form-control" />
                 <span asp-validation-for="Weight" class="text-danger"></span>
             </div>
             <div class="form-group form-check">
                 <label class="form-check-label">
-                    <input class="form-check-input" asp-for="IsOptional" /> @Html.DisplayNameFor(model => model.IsOptional)
+                    <input class="form-check-input" asp-for="IsOptional" /> @Html.DisplayNameFor(model =>
+                                        model.IsOptional)
                 </label>
             </div>
             <div class="form-group">
@@ -63,5 +54,7 @@
 </div>
 
 @section Scripts {
-    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
 }
