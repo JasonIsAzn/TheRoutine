@@ -19,8 +19,9 @@ namespace TheRoutineWeb.Controllers.Api
         [HttpGet("active")]
         public IActionResult GetActiveCycle([FromQuery] int userId)
         {
+            var today = DateTime.UtcNow.Date;
             var cycle = _context.WorkoutCycles
-                .FirstOrDefault(c => c.UserId == userId && c.IsActive);
+                .FirstOrDefault(c => c.UserId == userId && c.IsActive && c.StartDate.Date <= today && c.EndDate.HasValue && c.EndDate.Value.Date >= today);
 
             if (cycle == null)
                 return NotFound(new { message = "No active workout cycle found." });
@@ -42,11 +43,16 @@ namespace TheRoutineWeb.Controllers.Api
             int today = (int)request.StartDate.DayOfWeek;
             var map = Enumerable.Range(today, 7 - today).ToList();
 
+            var startDate = request.StartDate.Date;
+            var endDate = startDate.AddDays(6 - today).Date.AddHours(23).AddMinutes(59).AddSeconds(59); // Ends at 11:59:59 PM of that day
+
+
             var cycle = new WorkoutCycle
             {
                 UserId = request.UserId,
                 WorkoutPlanId = plan.Id,
-                StartDate = request.StartDate,
+                StartDate = startDate,
+                EndDate = endDate,
                 DayOrderMap = map,
                 CreatedAt = DateTime.UtcNow,
                 IsActive = true
@@ -54,12 +60,29 @@ namespace TheRoutineWeb.Controllers.Api
 
             var oldCycles = _context.WorkoutCycles.Where(c => c.UserId == request.UserId && c.IsActive);
             foreach (var old in oldCycles)
+            {
                 old.IsActive = false;
+                old.EndDate = DateTime.UtcNow;
+            }
 
             _context.WorkoutCycles.Add(cycle);
             await _context.SaveChangesAsync();
 
             return Ok(new { message = "Workout cycle created.", cycleId = cycle.Id });
+        }
+
+        [HttpPost("deactivate")]
+        public async Task<IActionResult> DeactivateCycle([FromQuery] int userId)
+        {
+            var cycle = await _context.WorkoutCycles.FirstOrDefaultAsync(c => c.UserId == userId && c.IsActive);
+            if (cycle == null)
+                return NotFound(new { message = "No active workout cycle to deactivate." });
+
+            cycle.IsActive = false;
+            cycle.EndDate = DateTime.UtcNow;
+            await _context.SaveChangesAsync();
+
+            return Ok(new { message = "Workout cycle deactivated." });
         }
     }
 

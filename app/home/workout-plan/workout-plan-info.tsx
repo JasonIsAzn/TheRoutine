@@ -6,6 +6,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { router } from 'expo-router';
 import { useAuth } from '../../../contexts/AuthContext';
 import { WorkoutDay, WorkoutExercise } from 'types/workout';
+import { deactivateWorkoutCycle } from '../../../api/workoutCycle';
 
 interface EditableWorkoutDay {
     label: string;
@@ -126,13 +127,15 @@ export default function WorkoutPlanInfoModal() {
 
         try {
             await deactivateWorkoutPlan(user.id);
+            await deactivateWorkoutCycle(user.id);
             await AsyncStorage.removeItem('activePlan');
-            Alert.alert('Workout plan deleted.');
+
+            Alert.alert('Workout plan and cycle deleted.');
             router.dismiss();
             router.replace('/home/workout-plan');
         } catch (err) {
             console.error(err);
-            Alert.alert('Error deleting plan.');
+            Alert.alert('Error deleting plan and cycle.');
         }
     };
 

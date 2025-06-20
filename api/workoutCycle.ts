@@ -16,3 +16,11 @@ export const createWorkoutCycle = async (cycleData: {
     const response = await api.post(`/workoutcycleapi`, cycleData);
     return response.data;
 };
+
+export const deactivateWorkoutCycle = async (userId: number) => {
+    console.log('Deactivating workout cycle for userId:', userId);
+    const response = await api.post(`/workoutcycleapi/deactivate`, null, {
+        params: { userId }
+    });
+    return response.data;
+};
