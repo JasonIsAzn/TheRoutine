@@ -311,7 +311,9 @@ export default function WorkoutPlanInfoModal() {
 
             {plan.workoutDays.map((day: any) => (
                 <View key={day.order} className="mb-5">
-                    <Text className="text-lg font-semibold">{day.label}</Text>
+                    <Text className="text-lg font-semibold">
+                        {fullDayNames[day.order]} – {day.label}
+                    </Text>
                     {day.exercises.map((exercise: any, index: number) => (
                         <View key={index} className="ml-2 mt-1">
                             <Text className="text-base">• {exercise.name}</Text>
