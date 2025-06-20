@@ -10,6 +10,7 @@ namespace TheRoutineWeb.Models
         public int WorkoutPlanId { get; set; }
 
         public DateTime StartDate { get; set; }
+        public DateTime? EndDate { get; set; }
         public List<int> DayOrderMap { get; set; } = new();
         public bool IsActive { get; set; } = true;
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
