@@ -11,6 +11,7 @@ namespace TheRoutineWeb.Data
         public DbSet<WorkoutPlan> WorkoutPlans { get; set; }
         public DbSet<WorkoutDay> WorkoutDays { get; set; }
         public DbSet<WorkoutExercise> WorkoutExercises { get; set; }
+        public DbSet<WorkoutCycle> WorkoutCycles { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -19,6 +20,13 @@ namespace TheRoutineWeb.Data
                 .HasConversion(
                     v => string.Join(",", v),
                     v => v.Split(",", StringSplitOptions.RemoveEmptyEntries).ToList()
+                );
+
+            modelBuilder.Entity<WorkoutCycle>()
+                .Property(c => c.DayOrderMap)
+                .HasConversion(
+                    v => string.Join(",", v),
+                    v => v.Split(",", StringSplitOptions.RemoveEmptyEntries).Select(int.Parse).ToList()
                 );
 
             base.OnModelCreating(modelBuilder);
