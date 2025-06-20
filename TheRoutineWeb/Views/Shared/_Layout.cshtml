@@ -27,11 +27,11 @@
                         </li>
 
                         <li class="nav-item dropdown">
-                            <a class="nav-link dropdown-toggle text-dark" href="#" id="workoutPlanDropdown"
-                                role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                                Workout Plans
+                            <a class="nav-link dropdown-toggle text-dark" href="#" id="planningDropdown" role="button"
+                                data-bs-toggle="dropdown" aria-expanded="false">
+                                Planning
                             </a>
-                            <ul class="dropdown-menu" aria-labelledby="workoutPlanDropdown">
+                            <ul class="dropdown-menu" aria-labelledby="planningDropdown">
                                 <li><a class="dropdown-item" asp-controller="WorkoutPlans" asp-action="Index">Workout
                                         Plans</a></li>
                                 <li><a class="dropdown-item" asp-controller="WorkoutDays" asp-action="Index">Workout
@@ -42,13 +42,17 @@
                         </li>
 
                         <li class="nav-item dropdown">
-                            <a class="nav-link dropdown-toggle text-dark" href="#" id="workoutCycleDropdown"
-                                role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                                Workout Cycles
+                            <a class="nav-link dropdown-toggle text-dark" href="#" id="loggingDropdown" role="button"
+                                data-bs-toggle="dropdown" aria-expanded="false">
+                                Logging
                             </a>
-                            <ul class="dropdown-menu" aria-labelledby="workoutCycleDropdown">
+                            <ul class="dropdown-menu" aria-labelledby="loggingDropdown">
                                 <li><a class="dropdown-item" asp-controller="WorkoutCycles" asp-action="Index">Workout
                                         Cycles</a></li>
+                                <li><a class="dropdown-item" asp-controller="WorkoutSessions" asp-action="Index">Workout
+                                        Sessions</a></li>
+                                <li><a class="dropdown-item" asp-controller="WorkoutSessionExercises"
+                                        asp-action="Index">Session Exercises</a></li>
                             </ul>
                         </li>
 
@@ -59,6 +63,7 @@
                 </div>
             </div>
         </nav>
+
     </header>
     <div class="container">
         <main role="main" class="pb-3">
