@@ -12,15 +12,22 @@ export const createWorkoutCycle = async (cycleData: {
     workoutPlanId: number;
     startDate: string; // ISO string (e.g. new Date().toISOString())
 }) => {
-    console.log('Creating workout cycle with data:', JSON.stringify(cycleData, null, 2));
     const response = await api.post(`/workoutcycleapi`, cycleData);
     return response.data;
 };
 
 export const deactivateWorkoutCycle = async (userId: number) => {
-    console.log('Deactivating workout cycle for userId:', userId);
     const response = await api.post(`/workoutcycleapi/deactivate`, null, {
         params: { userId }
     });
     return response.data;
 };
+
+export const updateWorkoutCyclePlanId = async (userId: number, newWorkoutPlanId: number) => {
+    const response = await api.post(`/workoutcycleapi/update-plan-id`, {
+        userId,
+        newWorkoutPlanId
+    });
+    return response.data;
+}
+

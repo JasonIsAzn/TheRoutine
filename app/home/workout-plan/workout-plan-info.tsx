@@ -6,7 +6,8 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { router } from 'expo-router';
 import { useAuth } from '../../../contexts/AuthContext';
 import { WorkoutDay, WorkoutExercise } from 'types/workout';
-import { deactivateWorkoutCycle } from '../../../api/workoutCycle';
+import { deactivateWorkoutCycle, updateWorkoutCyclePlanId } from '../../../api/workoutCycle';
+import { deleteWorkoutSession, fetchWorkoutSessionByDate } from 'api/workoutSession';
 
 interface EditableWorkoutDay {
     label: string;
@@ -51,12 +52,7 @@ export default function WorkoutPlanInfoModal() {
         );
     };
 
-    const updateExercise = (
-        dayIndex: number,
-        exIndex: number,
-        field: keyof WorkoutExercise,
-        value: any
-    ) => {
+    const updateExercise = (dayIndex: number, exIndex: number, field: keyof WorkoutExercise, value: any) => {
         setDays(prev =>
             prev.map((d, i) =>
                 i === dayIndex
@@ -161,37 +157,81 @@ export default function WorkoutPlanInfoModal() {
             return;
         }
 
-        const payload = {
-            userId: user.id,
-            name: planName,
-            splitType: plan.splitType,
-            cycleLength: plan.cycleLength,
-            planGroupId: plan.planGroupId,
-            workoutDays: days.map(day => ({
-                label: day.selected ? day.label : 'Rest Day',
-                order: day.order,
-                exercises: day.selected ? day.exercises : [],
-            })),
+        const todayIndex = new Date().getDay();
+        const oldToday = plan.workoutDays.find((d: WorkoutDay) => d.order === todayIndex);
+        const newToday = days.find((d: EditableWorkoutDay) => d.order === todayIndex);
+        const todayChanged = JSON.stringify(oldToday) !== JSON.stringify(newToday);
+
+        let existingSession = null;
+        try {
+            existingSession = await fetchWorkoutSessionByDate(user.id, new Date().toISOString().split('T')[0]);
+        } catch (err) {
+            existingSession = null;
+        }
+
+        const promptAndUpdate = async () => {
+            const payload = {
+                userId: user.id,
+                name: planName,
+                splitType: plan.splitType,
+                cycleLength: plan.cycleLength,
+                planGroupId: plan.planGroupId,
+                workoutDays: days.map(day => ({
+                    label: day.selected ? day.label : 'Rest Day',
+                    order: day.order,
+                    exercises: day.selected ? day.exercises : [],
+                })),
+            };
+
+            try {
+                const { planId, planGroupId, version } = await createWorkoutPlan(payload);
+
+                await updateWorkoutCyclePlanId(user.id, planId);
+
+                const activePlanData = {
+                    ...payload,
+                    planId,
+                    planGroupId,
+                    version,
+                };
+                await AsyncStorage.setItem('activePlan', JSON.stringify(activePlanData));
+                console.log('Plan updated successfully:', activePlanData);
+                router.dismiss();
+                router.replace('/home/workout-plan/workout-session');
+            } catch (err) {
+                console.error(err);
+                Alert.alert('Failed to update plan');
+            }
         };
 
-        try {
-            const { planId, planGroupId, version } = await createWorkoutPlan(payload);
-            const activePlanData = {
-                ...payload,
-                planId: planId,
-                planGroupId: planGroupId,
-                version: version,
-            };
-            await AsyncStorage.setItem('activePlan', JSON.stringify(activePlanData));
-            Alert.alert('Workout plan updated.');
-            router.dismiss();
-            router.replace('/home/workout-plan/workout-session');
-        } catch (err) {
-            console.error(err);
-            Alert.alert('Failed to update plan');
+        if (existingSession && todayChanged) {
+            Alert.alert(
+                "Today's workout changed",
+                "Would you like to keep the current workout session or replace it with the new one?",
+                [
+                    {
+                        text: "Keep Current",
+                        style: "cancel",
+                        onPress: () => promptAndUpdate(),
+                    },
+                    {
+                        text: "Replace",
+                        style: "destructive",
+                        onPress: async () => {
+                            try {
+                                await deleteWorkoutSession(existingSession.id);
+                            } catch (err) {
+                                console.error('Error deleting session:', err);
+                            }
+                            promptAndUpdate();
+                        },
+                    },
+                ]
+            );
+        } else {
+            promptAndUpdate();
         }
     };
-
     if (loading || !plan) {
         return (
             <View className="flex-1 justify-center items-center bg-white">

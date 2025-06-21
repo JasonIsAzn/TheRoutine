@@ -84,6 +84,24 @@ namespace TheRoutineWeb.Controllers.Api
 
             return Ok(new { message = "Workout cycle deactivated." });
         }
+
+        [HttpPost("update-plan-id")]
+        public async Task<IActionResult> UpdatePlanId([FromBody] UpdateCyclePlanRequest request)
+        {
+            var cycle = await _context.WorkoutCycles
+                .FirstOrDefaultAsync(c => c.UserId == request.UserId && c.IsActive);
+
+            if (cycle == null)
+                return NotFound(new { message = "Active cycle not found for user." });
+
+            cycle.WorkoutPlanId = request.NewWorkoutPlanId;
+            await _context.SaveChangesAsync();
+
+            return Ok(new { message = "Cycle updated with new plan ID." });
+        }
+
+
+
     }
 
     public class CreateCycleRequest
@@ -97,4 +115,11 @@ namespace TheRoutineWeb.Controllers.Api
     {
         public List<int> DayOrderMap { get; set; } = new();
     }
+
+    public class UpdateCyclePlanRequest
+    {
+        public int UserId { get; set; }
+        public int NewWorkoutPlanId { get; set; }
+    }
+
 }
