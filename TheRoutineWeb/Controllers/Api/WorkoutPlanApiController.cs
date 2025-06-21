@@ -201,6 +201,8 @@ namespace TheRoutineWeb.Controllers.Api
         public int UserId { get; set; }
         public int WorkoutCycleId { get; set; }
         public int CycleDayIndex { get; set; }
+        public string Label { get; set; } = string.Empty;
+        public bool IsCompleted { get; set; } = false;
         public DateTime Date { get; set; }
         public List<WorkoutExerciseDto> Exercises { get; set; } = new();
     }

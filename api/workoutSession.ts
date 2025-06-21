@@ -24,6 +24,6 @@ export const deleteWorkoutSession = async (sessionId: number) => {
 
 
 export const markWorkoutSessionAsCompleted = async (sessionId: number) => {
-    const response = await api.post(`/workoutsessionapi/${sessionId}/mark-complete`);
+    const response = await api.patch(`/workoutsessionapi/${sessionId}/mark-complete`);
     return response.data;
-}
+};

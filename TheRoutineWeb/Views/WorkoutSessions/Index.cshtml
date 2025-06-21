@@ -28,6 +28,9 @@
                 @Html.DisplayNameFor(model => model.Label)
             </th>
             <th>
+                @Html.DisplayNameFor(model => model.IsCompleted)
+            </th>
+            <th>
                 @Html.DisplayNameFor(model => model.WorkoutCycle)
             </th>
             <th></th>
@@ -51,6 +54,9 @@
                 </td>
                 <td>
                     @Html.DisplayFor(modelItem => item.Label)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.IsCompleted)
                 </td>
                 <td>
                     @Html.DisplayFor(modelItem => item.WorkoutCycle.Id)
