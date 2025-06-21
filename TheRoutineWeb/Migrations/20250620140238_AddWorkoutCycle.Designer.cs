@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using TheRoutineWeb.Data;
 
@@ -11,9 +12,11 @@ using TheRoutineWeb.Data;
 namespace TheRoutineWeb.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250620140238_AddWorkoutCycle")]
+    partial class AddWorkoutCycle
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -63,9 +66,6 @@ namespace TheRoutineWeb.Migrations
                     b.Property<string>("DayOrderMap")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
-
-                    b.Property<DateTime?>("EndDate")
-                        .HasColumnType("datetime2");
 
                     b.Property<bool>("IsActive")
                         .HasColumnType("bit");
@@ -187,81 +187,6 @@ namespace TheRoutineWeb.Migrations
                     b.ToTable("WorkoutPlans");
                 });
 
-            modelBuilder.Entity("TheRoutineWeb.Models.WorkoutSession", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<DateTime>("Date")
-                        .HasColumnType("datetime2");
-
-                    b.Property<int>("DayIndex")
-                        .HasColumnType("int");
-
-                    b.Property<string>("Label")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<int>("UserId")
-                        .HasColumnType("int");
-
-                    b.Property<int>("WorkoutCycleId")
-                        .HasColumnType("int");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("WorkoutCycleId");
-
-                    b.ToTable("WorkoutSessions");
-                });
-
-            modelBuilder.Entity("TheRoutineWeb.Models.WorkoutSessionExercise", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<bool>("IsCompleted")
-                        .HasColumnType("bit");
-
-                    b.Property<bool>("IsDeleted")
-                        .HasColumnType("bit");
-
-                    b.Property<bool>("IsOptional")
-                        .HasColumnType("bit");
-
-                    b.Property<bool>("IsSkipped")
-                        .HasColumnType("bit");
-
-                    b.Property<string>("Muscles")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("Name")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<int>("Order")
-                        .HasColumnType("int");
-
-                    b.Property<float?>("Weight")
-                        .HasColumnType("real");
-
-                    b.Property<int>("WorkoutSessionId")
-                        .HasColumnType("int");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("WorkoutSessionId");
-
-                    b.ToTable("WorkoutSessionExercises");
-                });
-
             modelBuilder.Entity("TheRoutineWeb.Models.WorkoutCycle", b =>
                 {
                     b.HasOne("TheRoutineWeb.Models.User", "User")
@@ -303,28 +228,6 @@ namespace TheRoutineWeb.Migrations
                     b.Navigation("Day");
                 });
 
-            modelBuilder.Entity("TheRoutineWeb.Models.WorkoutSession", b =>
-                {
-                    b.HasOne("TheRoutineWeb.Models.WorkoutCycle", "WorkoutCycle")
-                        .WithMany()
-                        .HasForeignKey("WorkoutCycleId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("WorkoutCycle");
-                });
-
-            modelBuilder.Entity("TheRoutineWeb.Models.WorkoutSessionExercise", b =>
-                {
-                    b.HasOne("TheRoutineWeb.Models.WorkoutSession", "WorkoutSession")
-                        .WithMany("Exercises")
-                        .HasForeignKey("WorkoutSessionId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("WorkoutSession");
-                });
-
             modelBuilder.Entity("TheRoutineWeb.Models.WorkoutDay", b =>
                 {
                     b.Navigation("Exercises");
@@ -333,11 +236,6 @@ namespace TheRoutineWeb.Migrations
             modelBuilder.Entity("TheRoutineWeb.Models.WorkoutPlan", b =>
                 {
                     b.Navigation("WorkoutDays");
-                });
-
-            modelBuilder.Entity("TheRoutineWeb.Models.WorkoutSession", b =>
-                {
-                    b.Navigation("Exercises");
                 });
 #pragma warning restore 612, 618
         }

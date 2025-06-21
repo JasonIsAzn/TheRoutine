@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using TheRoutineWeb.Data;
 
@@ -11,9 +12,11 @@ using TheRoutineWeb.Data;
 namespace TheRoutineWeb.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250620212823_AddSessionRelatedTables")]
+    partial class AddSessionRelatedTables
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -226,16 +229,7 @@ namespace TheRoutineWeb.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<bool>("IsCompleted")
-                        .HasColumnType("bit");
-
-                    b.Property<bool>("IsDeleted")
-                        .HasColumnType("bit");
-
                     b.Property<bool>("IsOptional")
-                        .HasColumnType("bit");
-
-                    b.Property<bool>("IsSkipped")
                         .HasColumnType("bit");
 
                     b.Property<string>("Muscles")
@@ -247,6 +241,12 @@ namespace TheRoutineWeb.Migrations
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<int>("Order")
+                        .HasColumnType("int");
+
+                    b.Property<int>("Reps")
+                        .HasColumnType("int");
+
+                    b.Property<int>("Sets")
                         .HasColumnType("int");
 
                     b.Property<float?>("Weight")

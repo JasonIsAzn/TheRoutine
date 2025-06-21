@@ -9,22 +9,18 @@ export const useWorkoutPlan = () => {
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        console.log('useWorkoutPlan effect triggered');
         const loadPlan = async () => {
             const stored = await AsyncStorage.getItem('activePlan');
             if (stored) {
                 setPlan(JSON.parse(stored));
                 setLoading(false);
-                console.log('Loaded plan from storage:', JSON.parse(stored));
                 return;
             }
 
             if (user) {
-                console.log('Fetching active workout plan for user:', user.id);
                 try {
                     const data = await fetchActiveWorkoutPlan(user.id);
                     setPlan(data);
-                    console.log('Fetched plan from API:', data);
                     await AsyncStorage.setItem('activePlan', JSON.stringify(data));
                 } catch (err) {
                     console.log('No active plan found:', err);
