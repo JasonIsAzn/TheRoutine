@@ -153,8 +153,6 @@ export default function WorkoutSessionScreen() {
             isCompleted: false,
             isSkipped: false,
             isDeleted: false,
-            sets: 0,
-            reps: 0,
             weight: null
         };
         await addSessionExercise(newExercise);
