@@ -35,6 +35,7 @@ namespace TheRoutineWeb.Controllers.Api
                 UserId = session.UserId,
                 WorkoutCycleId = session.WorkoutCycleId,
                 Date = session.Date,
+                IsCompleted = session.IsCompleted,
                 Exercises = session.Exercises.Select(e => new WorkoutExerciseDto
                 {
                     Name = e.Name,
@@ -76,6 +77,7 @@ namespace TheRoutineWeb.Controllers.Api
                 Date = request.Date.Date,
                 DayIndex = mappedDayOrder,
                 Label = matchingDay.Label,
+                IsCompleted = matchingDay.Exercises.Count == 0,
                 Exercises = matchingDay.Exercises.Select(e => new WorkoutSessionExercise
                 {
                     Name = e.Name,
@@ -108,6 +110,18 @@ namespace TheRoutineWeb.Controllers.Api
 
             return Ok(new { message = "Workout session deleted." });
         }
+
+        [HttpPatch("{id}/mark-complete")]
+        public async Task<IActionResult> MarkComplete(int id)
+        {
+            var session = await _context.WorkoutSessions.FindAsync(id);
+            if (session == null) return NotFound();
+
+            session.IsCompleted = true;
+            await _context.SaveChangesAsync();
+            return Ok();
+        }
+
     }
     public class CreateWorkoutSessionRequest
     {
