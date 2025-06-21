@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { View, Text, ScrollView, ActivityIndicator, Pressable } from 'react-native';
+import { View, Text, ScrollView, ActivityIndicator, Pressable, TextInput } from 'react-native';
 import { useWorkoutPlan } from '../../../hooks/useWorkoutPlan';
 import { useAuth } from '../../../contexts/AuthContext';
 import {
@@ -29,6 +29,12 @@ export default function WorkoutSessionScreen() {
     const [session, setSession] = useState<any>(null);
     const [exercises, setExercises] = useState<any[]>([]);
     const [loadingSession, setLoadingSession] = useState(true);
+    const [newExerciseDraft, setNewExerciseDraft] = useState({
+        name: '',
+        muscles: [''],
+    });
+    const [showAddForm, setShowAddForm] = useState(false);
+
 
 
     useEffect(() => {
@@ -143,25 +149,6 @@ export default function WorkoutSessionScreen() {
         setExercises(updated);
     };
 
-    const handleAddExercise = async () => {
-        const newExercise = {
-            workoutSessionId: session.id,
-            name: 'New Exercise',
-            muscles: [''],
-            order: exercises.length,
-            isOptional: true,
-            isCompleted: false,
-            isSkipped: false,
-            isDeleted: false,
-            weight: null
-        };
-        await addSessionExercise(newExercise);
-        const updated = await fetchSessionExercises(session.id);
-        setExercises(updated);
-    };
-
-
-
     return (
         <ScrollView className="flex-1 bg-white px-4 pt-6">
             {loadingSession ? (
@@ -199,15 +186,90 @@ export default function WorkoutSessionScreen() {
                                     </View>
                                 </View>
                             ))}
-
-                            <Pressable
-                                className="bg-gray-800 py-2 px-3 rounded mt-4"
-                                onPress={handleAddExercise}
-                            >
-                                <Text className="text-white text-center text-sm">+ Add Exercise</Text>
-                            </Pressable>
                         </>
                     )}
+
+                    <Pressable
+                        className="bg-gray-800 py-2 px-3 rounded mt-4"
+                        onPress={() => setShowAddForm(true)}
+                    >
+                        <Text className="text-white text-center text-sm">+ Add Exercise</Text>
+                    </Pressable>
+
+                    {showAddForm && (
+                        <View className="mt-4 bg-gray-100 p-4 rounded">
+                            <TextInput
+                                className="border border-gray-300 rounded px-3 py-2 mb-2 bg-white"
+                                placeholder="Exercise name"
+                                value={newExerciseDraft.name}
+                                onChangeText={(text) =>
+                                    setNewExerciseDraft((prev) => ({ ...prev, name: text }))
+                                }
+                            />
+
+                            {newExerciseDraft.muscles.map((muscle, idx) => (
+                                <View key={idx} className="flex-row items-center mb-2">
+                                    <TextInput
+                                        className="flex-1 border border-gray-300 rounded px-3 py-2 bg-white"
+                                        placeholder={`Muscle ${idx + 1}`}
+                                        value={muscle}
+                                        onChangeText={(text) => {
+                                            const updated = [...newExerciseDraft.muscles];
+                                            updated[idx] = text;
+                                            setNewExerciseDraft((prev) => ({ ...prev, muscles: updated }));
+                                        }}
+                                    />
+                                    <Pressable
+                                        className="ml-2 px-2 py-1 bg-red-500 rounded"
+                                        onPress={() => {
+                                            const updated = newExerciseDraft.muscles.filter((_, i) => i !== idx);
+                                            setNewExerciseDraft((prev) => ({ ...prev, muscles: updated }));
+                                        }}
+                                    >
+                                        <Text className="text-white">X</Text>
+                                    </Pressable>
+                                </View>
+                            ))}
+
+                            <Pressable
+                                className="mb-2 px-3 py-2 bg-blue-600 rounded"
+                                onPress={() =>
+                                    setNewExerciseDraft((prev) => ({
+                                        ...prev,
+                                        muscles: [...prev.muscles, ''],
+                                    }))
+                                }
+                            >
+                                <Text className="text-white text-sm text-center">+ Add Muscle</Text>
+                            </Pressable>
+
+                            <Pressable
+                                className="bg-green-600 px-3 py-2 rounded"
+                                onPress={async () => {
+                                    const newExercise = {
+                                        workoutSessionId: session.id,
+                                        name: newExerciseDraft.name,
+                                        muscles: newExerciseDraft.muscles.filter((m) => m.trim() !== ''),
+                                        order: exercises.length,
+                                        isOptional: true,
+                                        isCompleted: false,
+                                        isSkipped: false,
+                                        isDeleted: false,
+                                        weight: null,
+                                    };
+
+                                    const created = await addSessionExercise(newExercise);
+                                    setExercises((prev) => [...prev, created]);
+                                    setNewExerciseDraft({ name: '', muscles: [''] });
+                                    setShowAddForm(false);
+
+                                }}
+                            >
+                                <Text className="text-white text-center text-sm">Save Exercise</Text>
+                            </Pressable>
+                        </View>
+                    )}
+
                 </View>
             )}
 
