@@ -195,6 +195,17 @@ namespace TheRoutineWeb.Controllers.Api
         public List<WorkoutExerciseDto> Exercises { get; set; } = new();
     }
 
+    public class WorkoutSessionDto
+    {
+        public int Id { get; set; }
+        public int UserId { get; set; }
+        public int WorkoutCycleId { get; set; }
+        public int CycleDayIndex { get; set; }
+        public DateTime Date { get; set; }
+        public List<WorkoutExerciseDto> Exercises { get; set; } = new();
+    }
+
+
     public class WorkoutExerciseDto
     {
         public string Name { get; set; } = string.Empty;

@@ -21,12 +21,30 @@ namespace TheRoutineWeb.Controllers.Api
         {
             var session = await _context.WorkoutSessions
                 .Include(s => s.Exercises.Where(e => !e.IsDeleted))
-                .FirstOrDefaultAsync(s => s.UserId == userId && s.Date.Date == date.Date);
+                .FirstOrDefaultAsync(s =>
+                    s.UserId == userId &&
+                    s.Date >= date.Date &&
+                    s.Date < date.Date.AddDays(1));
 
             if (session == null)
-                return NotFound(new { message = "No session found for this date." });
+                return NotFound(new { message = "No session found for that date." });
 
-            return Ok(session);
+            var dto = new WorkoutSessionDto
+            {
+                Id = session.Id,
+                UserId = session.UserId,
+                WorkoutCycleId = session.WorkoutCycleId,
+                Date = session.Date,
+                Exercises = session.Exercises.Select(e => new WorkoutExerciseDto
+                {
+                    Name = e.Name,
+                    Muscles = e.Muscles,
+                    IsOptional = e.IsOptional,
+                    Order = e.Order
+                }).ToList()
+            };
+
+            return Ok(dto);
         }
 
         [HttpPost]
