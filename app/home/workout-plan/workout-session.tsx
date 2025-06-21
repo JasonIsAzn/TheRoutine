@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { View, Text, ScrollView, ActivityIndicator, Pressable, TextInput } from 'react-native';
+import { View, Text, ScrollView, ActivityIndicator, Pressable, TextInput, Alert } from 'react-native';
 import { useWorkoutPlan } from '../../../hooks/useWorkoutPlan';
 import { useAuth } from '../../../contexts/AuthContext';
 import {
@@ -9,7 +9,8 @@ import {
 import { router } from 'expo-router';
 import {
     fetchWorkoutSessionByDate,
-    createWorkoutSession
+    createWorkoutSession,
+    markWorkoutSessionAsCompleted
 } from '../../../api/workoutSession';
 
 import {
@@ -159,6 +160,10 @@ export default function WorkoutSessionScreen() {
             ) : session && (
                 <View className="mb-8">
                     <Text className="text-xl font-bold mb-2 text-center">Today's Workout</Text>
+                    {session.isCompleted && (
+                        <Text className="text-green-600 text-center font-semibold mb-2">✅ Session Completed</Text>
+                    )}
+
 
                     {exercises.length === 0 ? (
                         <Text className="text-center text-gray-500 italic">Rest Day</Text>
@@ -195,6 +200,23 @@ export default function WorkoutSessionScreen() {
                     >
                         <Text className="text-white text-center text-sm">+ Add Exercise</Text>
                     </Pressable>
+
+                    <Pressable
+                        className="mt-4 bg-green-600 py-2 px-4 rounded"
+                        onPress={async () => {
+                            try {
+                                await markWorkoutSessionAsCompleted(session.id);
+                                Alert.alert("Session marked as complete.");
+                                setSession((prev: any) => ({ ...prev, isCompleted: true }));
+                            } catch (err) {
+                                console.error(err);
+                                Alert.alert("Failed to mark session as complete.");
+                            }
+                        }}
+                    >
+                        <Text className="text-white text-center font-semibold">Mark Session Complete</Text>
+                    </Pressable>
+
 
                     {showAddForm && (
                         <View className="mt-4 bg-gray-100 p-4 rounded">
