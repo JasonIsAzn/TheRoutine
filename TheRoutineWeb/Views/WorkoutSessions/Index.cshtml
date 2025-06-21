@@ -56,7 +56,7 @@
                     @Html.DisplayFor(modelItem => item.Label)
                 </td>
                 <td>
-                    @Html.DisplayFor(modelItem => item.IsCompleted)
+                    @(item.IsCompleted ? "✓ Completed" : "✗ Pending")
                 </td>
                 <td>
                     @Html.DisplayFor(modelItem => item.WorkoutCycle.Id)
