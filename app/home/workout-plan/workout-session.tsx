@@ -36,6 +36,20 @@ export default function WorkoutSessionScreen() {
     });
     const [showAddForm, setShowAddForm] = useState(false);
 
+    const todayIndex = new Date().getDay();
+
+    const todayPositionInCycle = cycle.dayOrderMap.findIndex((d: number) => d === todayIndex);
+
+    const remainingDaysInCycle = todayPositionInCycle === -1
+        ? []
+        : cycle.dayOrderMap.slice(todayPositionInCycle + 1);
+
+    const remainingDayLabels = remainingDaysInCycle.map((dayIndex: number) => ({
+        label: labelMap.get(dayIndex) || 'Rest Day',
+        weekday: ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'][dayIndex],
+    }));
+
+
 
 
     useEffect(() => {
@@ -298,12 +312,18 @@ export default function WorkoutSessionScreen() {
 
             <Text className="text-xl font-bold mb-4 text-center">Your Current Cycle</Text>
 
-            {fullWeek.map((day: { label: string; weekday: string }, idx: number) => (
-                <View key={idx} className="mb-4">
-                    <Text className="text-sm text-gray-500">{day.weekday}</Text>
-                    <Text className="text-base font-semibold text-black">{day.label}</Text>
-                </View>
-            ))}
+            {remainingDayLabels.length > 0 ? (
+                remainingDayLabels.map((day: { label: string; weekday: string }, idx: number) => (
+                    <View key={idx} className="mb-4">
+                        <Text className="text-sm text-gray-500">{day.weekday}</Text>
+                        <Text className="text-base font-semibold text-black">{day.label}</Text>
+                    </View>
+                ))
+            ) : (
+                <Text className="text-center italic text-gray-500 mb-4">No more workouts left in this cycle.</Text>
+            )}
+
+            <Text className="text-center font-semibold text-gray-700 mt-4">This is the end of the cycle</Text>
 
             <View className="mt-8 mb-12">
                 <Pressable
