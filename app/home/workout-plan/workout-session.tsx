@@ -173,8 +173,8 @@ export default function WorkoutSessionScreen() {
                     {exercises.length === 0 ? (
                         <Text className="text-center text-gray-500 italic">Rest Day</Text>
                     ) : (
-                        exercises.map((exercise, index) => (
-                            <View key={index} className="flex-row items-center justify-between mb-2">
+                        exercises.map((exercise) => (
+                            <View key={exercise.id} className="flex-row items-center justify-between mb-2">
                                 <View className="flex-1">
                                     <Text className="text-base font-semibold">{exercise.name}</Text>
                                     <Text className="text-xs text-gray-500">
