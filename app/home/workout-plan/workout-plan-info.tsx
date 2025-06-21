@@ -122,6 +122,23 @@ export default function WorkoutPlanInfoModal() {
         if (!user) return;
 
         try {
+            const today = new Date().toISOString().split('T')[0];
+            let existingSession = null;
+            try {
+                existingSession = await fetchWorkoutSessionByDate(user.id, today);
+            } catch {
+                existingSession = null;
+            }
+
+            if (existingSession) {
+                try {
+                    await deleteWorkoutSession(existingSession.id);
+                    console.log('Deleted today\'s session.');
+                } catch (err) {
+                    console.warn('Failed to delete today\'s session:', err);
+                }
+            }
+
             await deactivateWorkoutPlan(user.id);
             await deactivateWorkoutCycle(user.id);
             await AsyncStorage.removeItem('activePlan');
