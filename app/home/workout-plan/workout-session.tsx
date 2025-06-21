@@ -169,6 +169,8 @@ export default function WorkoutSessionScreen() {
             ) : session && (
                 <View className="mb-8">
                     <Text className="text-xl font-bold mb-2 text-center">Today's Workout</Text>
+                    <Text className="text-lg mb-2 text-center">{plan.name}</Text>
+
                     {session.isCompleted && (
                         <Text className="text-green-600 text-center font-semibold mb-2">✅ Session Completed</Text>
                     )}
