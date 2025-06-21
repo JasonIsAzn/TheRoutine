@@ -38,7 +38,7 @@ export default function WorkoutSessionScreen() {
 
     const todayIndex = new Date().getDay();
 
-    const todayPositionInCycle = cycle.dayOrderMap.findIndex((d: number) => d === todayIndex);
+    const todayPositionInCycle = cycle?.dayOrderMap?.findIndex((d: number) => d === todayIndex) ?? -1;
 
     const remainingDaysInCycle = todayPositionInCycle === -1
         ? []
@@ -140,11 +140,6 @@ export default function WorkoutSessionScreen() {
         labelMap.set(day.order, day.label);
     });
 
-    // Show only the remaining days in the cycle
-    const fullWeek = cycle.dayOrderMap.map((dayIndex: number) => ({
-        label: labelMap.get(dayIndex) || 'Rest Day',
-        weekday: ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'][dayIndex],
-    }));
 
     const handleToggleComplete = async (exerciseId: number) => {
         await toggleCompleteExercise(exerciseId);
@@ -313,7 +308,7 @@ export default function WorkoutSessionScreen() {
             <Text className="text-xl font-bold mb-4 text-center">Your Current Cycle</Text>
 
             {remainingDayLabels.length > 0 ? (
-                remainingDayLabels.map((day: { label: string; weekday: string }, idx: number) => (
+                cycle && remainingDayLabels.map((day: { label: string; weekday: string }, idx: number) => (
                     <View key={idx} className="mb-4">
                         <Text className="text-sm text-gray-500">{day.weekday}</Text>
                         <Text className="text-base font-semibold text-black">{day.label}</Text>
