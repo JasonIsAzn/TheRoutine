@@ -214,4 +214,18 @@ namespace TheRoutineWeb.Controllers.Api
         public int Order { get; set; }
     }
 
+    public class WorkoutSessionExerciseDto
+    {
+        public int WorkoutSessionId { get; set; }
+        public string Name { get; set; } = string.Empty;
+        public List<string> Muscles { get; set; } = new();
+        public int Order { get; set; }
+        public float? Weight { get; set; }
+        public bool IsOptional { get; set; }
+        public bool IsCompleted { get; set; }
+        public bool IsSkipped { get; set; }
+        public bool IsDeleted { get; set; }
+    }
+
+
 }

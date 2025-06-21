@@ -8,7 +8,7 @@ export const fetchSessionExercises = async (sessionId: number) => {
 };
 
 export const addSessionExercise = async (exercise: any) => {
-    const response = await api.post('/workoutsessionexerciseapi', exercise);
+    const response = await api.post('/workoutsessionexerciseapi/add-exercise', exercise);
     return response.data;
 };
 

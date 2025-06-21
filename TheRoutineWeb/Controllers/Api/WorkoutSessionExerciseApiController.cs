@@ -29,9 +29,22 @@ namespace TheRoutineWeb.Controllers.Api
         }
 
         // POST a new custom exercise to a session
-        [HttpPost]
-        public async Task<IActionResult> AddExercise([FromBody] WorkoutSessionExercise exercise)
+        [HttpPost("add-exercise")]
+        public async Task<IActionResult> AddExercise([FromBody] WorkoutSessionExerciseDto dto)
         {
+            var exercise = new WorkoutSessionExercise
+            {
+                WorkoutSessionId = dto.WorkoutSessionId,
+                Name = dto.Name,
+                Muscles = dto.Muscles ?? new List<string>(),
+                Order = dto.Order,
+                Weight = dto.Weight,
+                IsOptional = dto.IsOptional,
+                IsCompleted = dto.IsCompleted,
+                IsSkipped = dto.IsSkipped,
+                IsDeleted = dto.IsDeleted
+            };
+
             _context.WorkoutSessionExercises.Add(exercise);
             await _context.SaveChangesAsync();
             return Ok(exercise);
