@@ -41,7 +41,7 @@ namespace TheRoutineWeb.Controllers.Api
                 return BadRequest(new { message = "Active workout plan not found." });
 
             int today = (int)request.StartDate.DayOfWeek;
-            var map = Enumerable.Range(today, 7 - today).ToList();
+            var dayOrderMap = Enumerable.Range(today, 7 - today).ToList();
 
             var startDate = request.StartDate.Date;
             var endDate = startDate.AddDays(6 - today).Date.AddHours(23).AddMinutes(59).AddSeconds(59); // Ends at 11:59:59 PM of that day
