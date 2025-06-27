@@ -28,6 +28,8 @@ import { BaseExercise } from 'types/workout';
 interface ExerciseDraft {
     name: string;
     muscles: string[];
+    useBaseSelect: boolean;
+    baseExerciseId: number | null;
 }
 
 
