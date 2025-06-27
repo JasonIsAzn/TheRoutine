@@ -30,6 +30,14 @@ interface ExerciseDraft {
     muscles: string[];
     useBaseSelect: boolean;
     baseExerciseId: number | null;
+    order?: number;
+}
+
+interface SessionExercise {
+    id: number;
+    name: string;
+    order: number;
+    isDeleted: boolean;
 }
 
 
@@ -42,12 +50,7 @@ export default function WorkoutSessionScreen() {
     const [session, setSession] = useState<any>(null);
     const [exercises, setExercises] = useState<any[]>([]);
     const [loadingSession, setLoadingSession] = useState(true);
-    const [newExerciseDraft, setNewExerciseDraft] = useState<{
-        name: string;
-        muscles: string[];
-        useBaseSelect: boolean;
-        baseExerciseId: number | null;
-    }>({
+    const [newExerciseDraft, setNewExerciseDraft] = useState<ExerciseDraft>({
         name: '',
         muscles: [''],
         useBaseSelect: false,
@@ -187,6 +190,22 @@ export default function WorkoutSessionScreen() {
         setExercises(updated);
     };
 
+    const handleSwap = async (exercise: any) => {
+        await softDeleteExercise(exercise.id);
+        setExercises(await fetchSessionExercises(session.id));
+
+        setNewExerciseDraft({
+            name: exercise.name,
+            muscles: exercise.muscles || [''],
+            useBaseSelect: !!exercise.baseExerciseId,
+            baseExerciseId: exercise.baseExerciseId ?? null,
+            order: exercise.order,
+        });
+
+        setShowAddForm(true);
+    };
+
+
 
     return (
         <ScrollView className="flex-1 bg-white px-4 pt-6">
@@ -227,6 +246,10 @@ export default function WorkoutSessionScreen() {
                                     <Pressable onPress={() => handleSoftDelete(exercise.id)}>
                                         <Text className="text-sm text-red-500">X</Text>
                                     </Pressable>
+                                    <Pressable onPress={() => handleSwap(exercise)}>
+                                        <Text className="text-sm text-blue-600">Swap</Text>
+                                    </Pressable>
+
                                 </View>
                             </View>
                         ))
@@ -352,7 +375,7 @@ export default function WorkoutSessionScreen() {
                                         workoutSessionId: session.id,
                                         name: newExerciseDraft.name,
                                         muscles: newExerciseDraft.muscles.filter((m) => m.trim() !== ''),
-                                        order: exercises.length,
+                                        order: newExerciseDraft.order ?? exercises.length,
                                         isOptional: true,
                                         isCompleted: false,
                                         isSkipped: false,
@@ -362,13 +385,30 @@ export default function WorkoutSessionScreen() {
                                     };
 
                                     const created = await addSessionExercise(newExercise);
-                                    setExercises((prev) => [...prev, created]);
+
+                                    let updatedExercises = await fetchSessionExercises(session.id);
+
+
+                                    updatedExercises = updatedExercises
+                                        .filter((e: SessionExercise) => !e.isDeleted)
+                                        .sort((a: SessionExercise, b: SessionExercise) => a.order - b.order);
+
+
+                                    for (let i = 0; i < updatedExercises.length; i++) {
+                                        if (updatedExercises[i].order !== i) {
+                                            updatedExercises[i].order = i;
+                                            await addSessionExercise({ ...updatedExercises[i], id: updatedExercises[i].id });
+                                        }
+                                    }
+
+                                    setExercises(updatedExercises);
                                     setNewExerciseDraft({ name: '', muscles: [''], useBaseSelect: false, baseExerciseId: null });
                                     setShowAddForm(false);
                                 }}
                             >
                                 <Text className="text-white text-center text-sm">Save Exercise</Text>
                             </Pressable>
+
                         </View>
                     )}
 
