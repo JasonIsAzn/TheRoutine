@@ -325,9 +325,15 @@ export default function WorkoutPlanInfoModal() {
                                         <Pressable
                                             className={`px-3 py-1 rounded ${ex.useBaseSelect ? 'bg-green-600' : 'bg-gray-400'
                                                 }`}
-                                            onPress={() =>
-                                                updateExercise(i, j, 'useBaseSelect', !ex.useBaseSelect)
-                                            }
+                                            onPress={() => {
+                                                const newUseBaseSelect = !ex.useBaseSelect;
+                                                updateExercise(i, j, 'useBaseSelect', newUseBaseSelect);
+                                                if (!newUseBaseSelect) {
+                                                    updateExercise(i, j, 'name', '');
+                                                    updateExercise(i, j, 'muscles', []);
+                                                    updateExercise(i, j, 'baseExerciseId', null);
+                                                }
+                                            }}
                                         >
                                             <Text className="text-white">
                                                 {ex.useBaseSelect ? 'ON' : 'OFF'}
