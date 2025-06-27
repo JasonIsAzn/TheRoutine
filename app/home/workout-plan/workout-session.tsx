@@ -56,10 +56,6 @@ export default function WorkoutSessionScreen() {
 
     const [baseExercises, setBaseExercises] = useState<BaseExercise[]>([]);
 
-    const [selectedBaseId, setSelectedBaseId] = useState<string | number>('');
-
-
-
     const todayIndex = new Date().getDay();
 
     useEffect(() => {
