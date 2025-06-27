@@ -381,6 +381,11 @@ export default function WorkoutPlanInfoModal() {
                                 Muscles: {exercise.muscles.join(', ')}
                                 {exercise.isOptional ? ' (Optional)' : ''}
                             </Text>
+                            {exercise.baseExerciseId && (
+                                <Text className="text-[10px] text-gray-400 italic">
+                                    Base Exercise ID: {exercise.baseExerciseId}
+                                </Text>
+                            )}
                         </View>
                     ))}
                 </View>
