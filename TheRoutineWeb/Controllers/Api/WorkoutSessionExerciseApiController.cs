@@ -42,7 +42,9 @@ namespace TheRoutineWeb.Controllers.Api
                 IsOptional = dto.IsOptional,
                 IsCompleted = dto.IsCompleted,
                 IsSkipped = dto.IsSkipped,
-                IsDeleted = dto.IsDeleted
+                IsDeleted = dto.IsDeleted,
+                BaseExerciseId = dto.BaseExerciseId,
+
             };
 
             _context.WorkoutSessionExercises.Add(exercise);
@@ -108,8 +110,9 @@ namespace TheRoutineWeb.Controllers.Api
             exercise.Name = updates.Name;
             exercise.Muscles = updates.Muscles;
             exercise.Weight = updates.Weight;
-            await _context.SaveChangesAsync();
+            exercise.BaseExerciseId = updates.BaseExerciseId;
 
+            await _context.SaveChangesAsync();
             return Ok(exercise);
         }
     }

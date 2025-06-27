@@ -67,6 +67,14 @@ namespace TheRoutineWeb.Controllers.Api
                 return StatusCode(500, new { message = "Failed to refresh exercises.", error = ex.Message });
             }
         }
+
+        [HttpGet]
+        public async Task<IActionResult> GetAllBaseExercises()
+        {
+            var exercises = await _context.BaseExercises.ToListAsync();
+            return Ok(exercises);
+        }
+
     }
 
     public class WgerExerciseResponse

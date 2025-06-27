@@ -1,11 +1,12 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { View, Text, TextInput, Pressable, ScrollView, Alert } from 'react-native';
 import { useAuth } from '../../../contexts/AuthContext';
 import { createWorkoutPlan } from '../../../api/workoutPlan';
 import { router } from 'expo-router';
-import { WorkoutExercise } from 'types/workout';
+import { BaseExercise, WorkoutExercise } from 'types/workout';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-
+import { Picker } from '@react-native-picker/picker';
+import { fetchBaseExercises } from '../../../api/baseExercise';
 
 interface EditableWorkoutDay {
     label: string;
@@ -13,6 +14,8 @@ interface EditableWorkoutDay {
     selected: boolean;
     exercises: WorkoutExercise[];
 }
+
+
 
 const weekdays = ['S', 'M', 'T', 'W', 'T', 'F', 'S'];
 const fullDayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
@@ -29,6 +32,22 @@ export default function CreateWorkoutPlanScreen() {
             exercises: [],
         }))
     );
+    const [baseExercises, setBaseExercises] = useState<BaseExercise[]>([]);
+
+    console.log('baseExercises', baseExercises);
+
+    useEffect(() => {
+        const loadExercises = async () => {
+            try {
+                const res = await fetchBaseExercises();
+                setBaseExercises(res);
+            } catch (err) {
+                console.error('Failed to load base exercises:', err);
+            }
+        };
+        loadExercises();
+    }, []);
+
 
     const toggleDay = (index: number) => {
         setDays(prev =>
@@ -48,7 +67,7 @@ export default function CreateWorkoutPlanScreen() {
                         ...d,
                         exercises: [
                             ...d.exercises,
-                            { name: '', muscles: [''], isOptional: false, order: d.exercises.length },
+                            { name: '', muscles: [''], isOptional: false, order: d.exercises.length, useBaseSelect: false, baseExerciseId: undefined },
                         ],
                     }
                     : d
@@ -203,12 +222,46 @@ export default function CreateWorkoutPlanScreen() {
                         />
                         {day.exercises.map((ex, j) => (
                             <View key={j} className="mb-3 ml-2">
-                                <TextInput
-                                    className="border border-gray-300 rounded px-3 py-1 mb-1"
-                                    placeholder="Exercise name"
-                                    value={ex.name}
-                                    onChangeText={text => updateExercise(i, j, 'name', text)}
-                                />
+                                {/* Toggle between Manual and Base */}
+                                <View className="flex-row mb-2 items-center">
+                                    <Text className="mr-2">Use Base:</Text>
+                                    <Pressable
+                                        className={`px-3 py-1 rounded ${ex.useBaseSelect ? 'bg-green-600' : 'bg-gray-400'}`}
+                                        onPress={() => updateExercise(i, j, 'useBaseSelect', !ex.useBaseSelect)}
+                                    >
+                                        <Text className="text-white">{ex.useBaseSelect ? 'ON' : 'OFF'}</Text>
+                                    </Pressable>
+                                </View>
+
+                                {/* Show Picker or TextInput based on toggle */}
+                                {ex.useBaseSelect ? (
+                                    <View className="border border-gray-300 rounded mb-2">
+                                        <Picker
+                                            selectedValue={ex.baseExerciseId ?? ''}
+                                            onValueChange={(baseId) => {
+                                                const selected = baseExercises.find(b => b.id === baseId);
+                                                if (selected) {
+                                                    updateExercise(i, j, 'baseExerciseId', selected.id);
+                                                    updateExercise(i, j, 'name', selected.name);
+                                                    updateExercise(i, j, 'muscles', selected.muscles);
+                                                }
+                                            }}
+                                        >
+                                            <Picker.Item label="Select Exercise..." value="" />
+                                            {baseExercises.map((base) => (
+                                                <Picker.Item key={base.id} label={base.name} value={base.id} />
+                                            ))}
+                                        </Picker>
+                                    </View>
+                                ) : (
+                                    <TextInput
+                                        className="border border-gray-300 rounded px-3 py-1 mb-1"
+                                        placeholder="Exercise name"
+                                        value={ex.name}
+                                        onChangeText={text => updateExercise(i, j, 'name', text)}
+                                    />
+                                )}
+
                                 <TextInput
                                     className="border border-gray-300 rounded px-3 py-1 mb-1"
                                     placeholder="Order"
@@ -217,6 +270,7 @@ export default function CreateWorkoutPlanScreen() {
                                     onChangeText={text => updateExercise(i, j, 'order', parseInt(text))}
                                 />
 
+                                {/* Muscle fields */}
                                 {ex.muscles.map((muscle, mIndex) => (
                                     <View key={mIndex} className="flex-row items-center mb-1">
                                         <TextInput
@@ -231,7 +285,6 @@ export default function CreateWorkoutPlanScreen() {
                                         >
                                             <Text className="text-white text-base font-bold">X</Text>
                                         </Pressable>
-
                                     </View>
                                 ))}
 
@@ -250,6 +303,7 @@ export default function CreateWorkoutPlanScreen() {
                                 </Pressable>
                             </View>
                         ))}
+
 
                         <Pressable
                             className="bg-green-600 rounded px-4 py-2"

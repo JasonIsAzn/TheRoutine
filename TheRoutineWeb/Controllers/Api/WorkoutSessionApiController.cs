@@ -84,6 +84,7 @@ namespace TheRoutineWeb.Controllers.Api
                     Muscles = e.Muscles,
                     Order = e.Order,
                     IsOptional = e.IsOptional,
+                    BaseExerciseId = e.BaseExerciseId,
                     IsCompleted = false,
                     IsSkipped = false,
                     IsDeleted = false,
