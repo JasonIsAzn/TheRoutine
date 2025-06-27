@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using TheRoutineWeb.Data;
 
@@ -11,9 +12,11 @@ using TheRoutineWeb.Data;
 namespace TheRoutineWeb.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250627154101_AddBaseExerciseAndRefactorWorkoutExercise")]
+    partial class AddBaseExerciseAndRefactorWorkoutExercise
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -258,9 +261,6 @@ namespace TheRoutineWeb.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<int?>("BaseExerciseId")
-                        .HasColumnType("int");
-
                     b.Property<bool>("IsCompleted")
                         .HasColumnType("bit");
 
@@ -291,8 +291,6 @@ namespace TheRoutineWeb.Migrations
                         .HasColumnType("int");
 
                     b.HasKey("Id");
-
-                    b.HasIndex("BaseExerciseId");
 
                     b.HasIndex("WorkoutSessionId");
 
@@ -359,17 +357,11 @@ namespace TheRoutineWeb.Migrations
 
             modelBuilder.Entity("TheRoutineWeb.Models.WorkoutSessionExercise", b =>
                 {
-                    b.HasOne("TheRoutineWeb.Models.BaseExercise", "BaseExercise")
-                        .WithMany()
-                        .HasForeignKey("BaseExerciseId");
-
                     b.HasOne("TheRoutineWeb.Models.WorkoutSession", "WorkoutSession")
                         .WithMany("Exercises")
                         .HasForeignKey("WorkoutSessionId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
-
-                    b.Navigation("BaseExercise");
 
                     b.Navigation("WorkoutSession");
                 });

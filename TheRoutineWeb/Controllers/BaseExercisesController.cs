@@ -8,29 +8,24 @@ using Microsoft.EntityFrameworkCore;
 using TheRoutineWeb.Data;
 using TheRoutineWeb.Models;
 
-namespace TheRoutineWeb
+namespace TheRoutineWeb.Controllers
 {
-    public class WorkoutSessionsController : Controller
+    public class BaseExercisesController : Controller
     {
         private readonly AppDbContext _context;
 
-        public WorkoutSessionsController(AppDbContext context)
+        public BaseExercisesController(AppDbContext context)
         {
             _context = context;
         }
 
-        // GET: WorkoutSessions
+        // GET: BaseExercises
         public async Task<IActionResult> Index()
         {
-            var appDbContext = _context.WorkoutSessions
-                .Include(ws => ws.WorkoutCycle)
-                .Include(ws => ws.Exercises)
-                .ThenInclude(e => e.BaseExercise);
-
-            return View(await appDbContext.ToListAsync());
+            return View(await _context.BaseExercises.ToListAsync());
         }
 
-        // GET: WorkoutSessions/Details/5
+        // GET: BaseExercises/Details/5
         public async Task<IActionResult> Details(int? id)
         {
             if (id == null)
@@ -38,42 +33,39 @@ namespace TheRoutineWeb
                 return NotFound();
             }
 
-            var workoutSession = await _context.WorkoutSessions
-                .Include(w => w.WorkoutCycle)
+            var baseExercise = await _context.BaseExercises
                 .FirstOrDefaultAsync(m => m.Id == id);
-            if (workoutSession == null)
+            if (baseExercise == null)
             {
                 return NotFound();
             }
 
-            return View(workoutSession);
+            return View(baseExercise);
         }
 
-        // GET: WorkoutSessions/Create
+        // GET: BaseExercises/Create
         public IActionResult Create()
         {
-            ViewData["WorkoutCycleId"] = new SelectList(_context.WorkoutCycles, "Id", "Id");
             return View();
         }
 
-        // POST: WorkoutSessions/Create
+        // POST: BaseExercises/Create
         // To protect from overposting attacks, enable the specific properties you want to bind to.
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("Id,UserId,WorkoutCycleId,Date,DayIndex,Label")] WorkoutSession workoutSession)
+        public async Task<IActionResult> Create([Bind("Id,Name,Muscles,Equipment")] BaseExercise baseExercise)
         {
             if (ModelState.IsValid)
             {
-                _context.Add(workoutSession);
+                _context.Add(baseExercise);
                 await _context.SaveChangesAsync();
                 return RedirectToAction(nameof(Index));
             }
-            ViewData["WorkoutCycleId"] = new SelectList(_context.WorkoutCycles, "Id", "Id", workoutSession.WorkoutCycleId);
-            return View(workoutSession);
+            return View(baseExercise);
         }
 
-        // GET: WorkoutSessions/Edit/5
+        // GET: BaseExercises/Edit/5
         public async Task<IActionResult> Edit(int? id)
         {
             if (id == null)
@@ -81,23 +73,22 @@ namespace TheRoutineWeb
                 return NotFound();
             }
 
-            var workoutSession = await _context.WorkoutSessions.FindAsync(id);
-            if (workoutSession == null)
+            var baseExercise = await _context.BaseExercises.FindAsync(id);
+            if (baseExercise == null)
             {
                 return NotFound();
             }
-            ViewData["WorkoutCycleId"] = new SelectList(_context.WorkoutCycles, "Id", "Id", workoutSession.WorkoutCycleId);
-            return View(workoutSession);
+            return View(baseExercise);
         }
 
-        // POST: WorkoutSessions/Edit/5
+        // POST: BaseExercises/Edit/5
         // To protect from overposting attacks, enable the specific properties you want to bind to.
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("Id,UserId,WorkoutCycleId,Date,DayIndex,Label")] WorkoutSession workoutSession)
+        public async Task<IActionResult> Edit(int id, [Bind("Id,Name,Muscles,Equipment")] BaseExercise baseExercise)
         {
-            if (id != workoutSession.Id)
+            if (id != baseExercise.Id)
             {
                 return NotFound();
             }
@@ -106,12 +97,12 @@ namespace TheRoutineWeb
             {
                 try
                 {
-                    _context.Update(workoutSession);
+                    _context.Update(baseExercise);
                     await _context.SaveChangesAsync();
                 }
                 catch (DbUpdateConcurrencyException)
                 {
-                    if (!WorkoutSessionExists(workoutSession.Id))
+                    if (!BaseExerciseExists(baseExercise.Id))
                     {
                         return NotFound();
                     }
@@ -122,11 +113,10 @@ namespace TheRoutineWeb
                 }
                 return RedirectToAction(nameof(Index));
             }
-            ViewData["WorkoutCycleId"] = new SelectList(_context.WorkoutCycles, "Id", "Id", workoutSession.WorkoutCycleId);
-            return View(workoutSession);
+            return View(baseExercise);
         }
 
-        // GET: WorkoutSessions/Delete/5
+        // GET: BaseExercises/Delete/5
         public async Task<IActionResult> Delete(int? id)
         {
             if (id == null)
@@ -134,35 +124,34 @@ namespace TheRoutineWeb
                 return NotFound();
             }
 
-            var workoutSession = await _context.WorkoutSessions
-                .Include(w => w.WorkoutCycle)
+            var baseExercise = await _context.BaseExercises
                 .FirstOrDefaultAsync(m => m.Id == id);
-            if (workoutSession == null)
+            if (baseExercise == null)
             {
                 return NotFound();
             }
 
-            return View(workoutSession);
+            return View(baseExercise);
         }
 
-        // POST: WorkoutSessions/Delete/5
+        // POST: BaseExercises/Delete/5
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
-            var workoutSession = await _context.WorkoutSessions.FindAsync(id);
-            if (workoutSession != null)
+            var baseExercise = await _context.BaseExercises.FindAsync(id);
+            if (baseExercise != null)
             {
-                _context.WorkoutSessions.Remove(workoutSession);
+                _context.BaseExercises.Remove(baseExercise);
             }
 
             await _context.SaveChangesAsync();
             return RedirectToAction(nameof(Index));
         }
 
-        private bool WorkoutSessionExists(int id)
+        private bool BaseExerciseExists(int id)
         {
-            return _context.WorkoutSessions.Any(e => e.Id == id);
+            return _context.BaseExercises.Any(e => e.Id == id);
         }
     }
 }

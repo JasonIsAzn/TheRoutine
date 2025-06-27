@@ -53,7 +53,7 @@ namespace TheRoutineWeb.Controllers.Api
                 WorkoutPlanId = plan.Id,
                 StartDate = startDate,
                 EndDate = endDate,
-                DayOrderMap = map,
+                DayOrderMap = dayOrderMap,
                 CreatedAt = DateTime.UtcNow,
                 IsActive = true
             };

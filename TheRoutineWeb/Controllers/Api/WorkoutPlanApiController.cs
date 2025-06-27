@@ -52,7 +52,8 @@ namespace TheRoutineWeb.Controllers.Api
                                 Name = e.Name,
                                 Muscles = e.Muscles,
                                 IsOptional = e.IsOptional,
-                                Order = e.Order
+                                Order = e.Order,
+                                BaseExerciseId = e.BaseExerciseId,
                             }).ToList()
                     }).ToList()
             };
@@ -93,19 +94,29 @@ namespace TheRoutineWeb.Controllers.Api
                 IsActive = true,
                 PlanGroupId = planGroupId,
                 Version = version,
-                WorkoutDays = request.WorkoutDays.Select(day => new WorkoutDay
+                WorkoutDays = request.WorkoutDays.Select(day =>
                 {
-                    Label = day.Label,
-                    Order = day.Order,
-                    Exercises = day.Exercises.Select(ex => new WorkoutExercise
+                    var exercises = day.Exercises.Select(ex =>
                     {
-                        Name = ex.Name,
-                        Muscles = ex.Muscles,
-                        IsOptional = ex.IsOptional,
-                        Order = ex.Order
-                    }).ToList()
+                        return new WorkoutExercise
+                        {
+                            Name = ex.Name,
+                            Muscles = ex.Muscles,
+                            IsOptional = ex.IsOptional,
+                            Order = ex.Order,
+                            BaseExerciseId = ex.BaseExerciseId
+                        };
+                    }).ToList();
+
+                    return new WorkoutDay
+                    {
+                        Label = day.Label,
+                        Order = day.Order,
+                        Exercises = exercises
+                    };
                 }).ToList()
             };
+
 
             _context.WorkoutPlans.Add(plan);
             await _context.SaveChangesAsync();
@@ -156,6 +167,8 @@ namespace TheRoutineWeb.Controllers.Api
         public string SplitType { get; set; } = string.Empty;
         public int CycleLength { get; set; }
         public List<WorkoutDayCreateRequest> WorkoutDays { get; set; } = new();
+        public int? BaseExerciseId { get; set; }
+
     }
 
     public class WorkoutDayCreateRequest
@@ -171,6 +184,7 @@ namespace TheRoutineWeb.Controllers.Api
         public List<string> Muscles { get; set; } = new();
         public bool IsOptional { get; set; }
         public int Order { get; set; }
+        public int? BaseExerciseId { get; set; }
     }
 
     public class WorkoutPlanDto
@@ -214,6 +228,7 @@ namespace TheRoutineWeb.Controllers.Api
         public List<string> Muscles { get; set; } = new();
         public bool IsOptional { get; set; }
         public int Order { get; set; }
+        public int? BaseExerciseId { get; set; }
     }
 
     public class WorkoutSessionExerciseDto
@@ -227,6 +242,7 @@ namespace TheRoutineWeb.Controllers.Api
         public bool IsCompleted { get; set; }
         public bool IsSkipped { get; set; }
         public bool IsDeleted { get; set; }
+        public int? BaseExerciseId { get; set; }
     }
 
 

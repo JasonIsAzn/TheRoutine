@@ -36,12 +36,16 @@ namespace TheRoutineWeb.Controllers.Api
                 WorkoutCycleId = session.WorkoutCycleId,
                 Date = session.Date,
                 IsCompleted = session.IsCompleted,
-                Exercises = session.Exercises.Select(e => new WorkoutExerciseDto
+                Exercises = session.Exercises.Select(e =>
                 {
-                    Name = e.Name,
-                    Muscles = e.Muscles,
-                    IsOptional = e.IsOptional,
-                    Order = e.Order
+                    return new WorkoutExerciseDto
+                    {
+                        Name = e.Name,
+                        Muscles = e.Muscles,
+                        IsOptional = e.IsOptional,
+                        Order = e.Order,
+                        BaseExerciseId = e.BaseExerciseId ?? null
+                    };
                 }).ToList()
             };
 
@@ -84,6 +88,7 @@ namespace TheRoutineWeb.Controllers.Api
                     Muscles = e.Muscles,
                     Order = e.Order,
                     IsOptional = e.IsOptional,
+                    BaseExerciseId = e.BaseExerciseId,
                     IsCompleted = false,
                     IsSkipped = false,
                     IsDeleted = false,

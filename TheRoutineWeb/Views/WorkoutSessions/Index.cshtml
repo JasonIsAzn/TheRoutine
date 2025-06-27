@@ -4,69 +4,73 @@
     ViewData["Title"] = "Index";
 }
 
-<h1>Index</h1>
+<h1>Workout Sessions</h1>
 
 <p>
     <a asp-action="Create">Create New</a>
 </p>
-<table class="table">
-    <thead>
-        <tr>
-            <th>
-                @Html.DisplayNameFor(model => model.Id)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.UserId)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.Date)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.DayIndex)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.Label)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.IsCompleted)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.WorkoutCycle)
-            </th>
-            <th></th>
-        </tr>
-    </thead>
-    <tbody>
-        @foreach (var item in Model)
-        {
-            <tr>
-                <td>
-                    @Html.DisplayFor(modelItem => item.Id)
-                </td>
-                <td>
-                    @Html.DisplayFor(modelItem => item.UserId)
-                </td>
-                <td>
-                    @Html.DisplayFor(modelItem => item.Date)
-                </td>
-                <td>
-                    @Html.DisplayFor(modelItem => item.DayIndex)
-                </td>
-                <td>
-                    @Html.DisplayFor(modelItem => item.Label)
-                </td>
-                <td>
-                    @(item.IsCompleted ? "✓ Completed" : "✗ Pending")
-                </td>
-                <td>
-                    @Html.DisplayFor(modelItem => item.WorkoutCycle.Id)
-                </td>
-                <td>
-                    <a asp-action="Edit" asp-route-id="@item.Id">Edit</a> |
-                    <a asp-action="Details" asp-route-id="@item.Id">Details</a> |
-                    <a asp-action="Delete" asp-route-id="@item.Id">Delete</a>
-                </td>
-            </tr>
-        }
-    </tbody>
-</table>
+
+@foreach (var session in Model)
+{
+    <div class="card my-3">
+        <div class="card-header">
+            <strong>Session @session.Id</strong> - @session.Label - @(session.IsCompleted ? "✓ Completed" : "✗ Pending")
+        </div>
+        <div class="card-body">
+            <p><strong>User:</strong> @session.UserId</p>
+            <p><strong>Date:</strong> @session.Date</p>
+            <p><strong>Day Index:</strong> @session.DayIndex</p>
+            <p><strong>Cycle ID:</strong> @session.WorkoutCycle?.Id</p>
+
+            <h5>Exercises:</h5>
+            @if (session.Exercises != null && session.Exercises.Any())
+            {
+                <table class="table table-sm table-bordered">
+                    <thead>
+                        <tr>
+                            <th>Order</th>
+                            <th>Name</th>
+                            <th>Muscles</th>
+                            <th>Weight</th>
+                            <th>Optional</th>
+                            <th>Completed</th>
+                            <th>Skipped</th>
+                            <th>Deleted</th>
+                            <th>Base Exercise</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var ex in session.Exercises)
+                        {
+                            <tr>
+                                <td>@ex.Order</td>
+                                <td>@ex.Name</td>
+                                <td>@string.Join(", ", ex.Muscles)</td>
+                                <td>@ex.Weight</td>
+                                <td>@ex.IsOptional</td>
+                                <td>@ex.IsCompleted</td>
+                                <td>@ex.IsSkipped</td>
+                                <td>@ex.IsDeleted</td>
+                                <td>
+                                    @(ex.BaseExerciseId.HasValue
+                                        ? $"{ex.BaseExercise?.Name ?? "BaseExercise #" + ex.BaseExerciseId}"
+                                        : "-")
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            }
+            else
+            {
+                <p class="text-muted">No exercises for this session.</p>
+            }
+
+            <p>
+                <a asp-action="Edit" asp-route-id="@session.Id">Edit</a> |
+                <a asp-action="Details" asp-route-id="@session.Id">Details</a> |
+                <a asp-action="Delete" asp-route-id="@session.Id">Delete</a>
+            </p>
+        </div>
+    </div>
+}

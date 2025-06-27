@@ -1,35 +1,28 @@
 @model IEnumerable<TheRoutineWeb.Models.WorkoutSessionExercise>
 
 @{
-    ViewData["Title"] = "Index";
+    ViewData["Title"] = "Workout Session Exercises";
 }
 
-<h1>Index</h1>
+<h1>Workout Session Exercises</h1>
 
 <p>
     <a asp-action="Create">Create New</a>
 </p>
+
 <table class="table">
     <thead>
         <tr>
-            <th>
-                @Html.DisplayNameFor(model => model.Name)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.Muscles)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.Order)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.Weight)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.IsOptional)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.WorkoutSession)
-            </th>
+            <th>@Html.DisplayNameFor(model => model.Name)</th>
+            <th>@Html.DisplayNameFor(model => model.Muscles)</th>
+            <th>@Html.DisplayNameFor(model => model.Weight)</th>
+            <th>@Html.DisplayNameFor(model => model.Order)</th>
+            <th>@Html.DisplayNameFor(model => model.IsOptional)</th>
+            <th>@Html.DisplayNameFor(model => model.IsCompleted)</th>
+            <th>@Html.DisplayNameFor(model => model.IsSkipped)</th>
+            <th>@Html.DisplayNameFor(model => model.IsDeleted)</th>
+            <th>Workout Session</th>
+            <th>Base Exercise</th>
             <th></th>
         </tr>
     </thead>
@@ -37,30 +30,26 @@
         @foreach (var item in Model)
         {
             <tr>
+                <td>@item.Name</td>
+                <td>@string.Join(", ", item.Muscles)</td>
+                <td>@item.Weight</td>
+                <td>@item.Order</td>
+                <td>@item.IsOptional</td>
+                <td>@item.IsCompleted</td>
+                <td>@item.IsSkipped</td>
+                <td>@item.IsDeleted</td>
+                <td>@item.WorkoutSession?.Id</td>
                 <td>
-                    @Html.DisplayFor(modelItem => item.Name)
-                </td>
-                <td>
-                    @Html.DisplayFor(modelItem => item.Muscles)
-                </td>
-                <td>
-                    @Html.DisplayFor(modelItem => item.Order)
-                </td>
-                <td>
-                    @Html.DisplayFor(modelItem => item.Weight)
-                </td>
-                <td>
-                    @Html.DisplayFor(modelItem => item.IsOptional)
-                </td>
-                <td>
-                    @Html.DisplayFor(modelItem => item.WorkoutSession.Id)
-                </td>
-                <td>
-                    <a asp-action="Edit" asp-route-id="@item.Id">Edit</a> |
-                    <a asp-action="Details" asp-route-id="@item.Id">Details</a> |
-                    <a asp-action="Delete" asp-route-id="@item.Id">Delete</a>
-                </td>
-            </tr>
-        }
+                    @(item.BaseExerciseId.HasValue
+                                    ? item.BaseExercise?.Name ?? $"BaseExercise #{item.BaseExerciseId}"
+                                    : "-")
+            </td>
+            <td>
+                <a asp-action="Edit" asp-route-id="@item.Id">Edit</a> |
+                <a asp-action="Details" asp-route-id="@item.Id">Details</a> |
+                <a asp-action="Delete" asp-route-id="@item.Id">Delete</a>
+            </td>
+        </tr>
+                }
     </tbody>
 </table>
