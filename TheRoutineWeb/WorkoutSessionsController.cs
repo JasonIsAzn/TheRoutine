@@ -22,7 +22,11 @@ namespace TheRoutineWeb
         // GET: WorkoutSessions
         public async Task<IActionResult> Index()
         {
-            var appDbContext = _context.WorkoutSessions.Include(w => w.WorkoutCycle);
+            var appDbContext = _context.WorkoutSessions
+                .Include(ws => ws.WorkoutCycle)
+                .Include(ws => ws.Exercises)
+                .ThenInclude(e => e.BaseExercise);
+
             return View(await appDbContext.ToListAsync());
         }
 
