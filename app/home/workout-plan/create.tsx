@@ -34,8 +34,6 @@ export default function CreateWorkoutPlanScreen() {
     );
     const [baseExercises, setBaseExercises] = useState<BaseExercise[]>([]);
 
-    console.log('baseExercises', baseExercises);
-
     useEffect(() => {
         const loadExercises = async () => {
             try {
