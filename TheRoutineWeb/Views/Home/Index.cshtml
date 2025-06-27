@@ -5,4 +5,25 @@
 <div class="text-center">
     <h1 class="display-4">Welcome</h1>
     <p>Learn about <a href="https://learn.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
+
+    <button id="refresh-btn" class="btn btn-primary mt-3">🔄 Refresh Base Exercises</button>
+
+    <div id="refresh-result" class="mt-2 text-success"></div>
 </div>
+
+@section Scripts {
+    <script>
+        document.getElementById("refresh-btn").addEventListener("click", async () => {
+            const resultDiv = document.getElementById("refresh-result");
+            resultDiv.innerText = "Refreshing...";
+            try {
+                const res = await fetch("/api/BaseExerciseApi/refresh", { method: "POST" });
+                const data = await res.json();
+                resultDiv.innerText = data.message || "Refresh complete.";
+            } catch (err) {
+                resultDiv.innerText = "❌ Failed to refresh exercises.";
+                console.error(err);
+            }
+        });
+    </script>
+}
