@@ -193,7 +193,7 @@ export default function WorkoutPlanInfoModal() {
             return;
         }
 
-        const todayIndex = new Date().getDay();
+        const todayIndex = new Date().getUTCDay();
         const oldToday = plan.workoutDays.find((d: WorkoutDay) => d.order === todayIndex);
         const newToday = days.find((d: EditableWorkoutDay) => d.order === todayIndex);
         const todayChanged = JSON.stringify(oldToday) !== JSON.stringify(newToday);
