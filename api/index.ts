@@ -1,8 +1,7 @@
-// utils/api.ts
 import axios from 'axios';
 
 const api = axios.create({
-    baseURL: 'http://192.168.0.107:5284/api', // Replace with API base URL
+    baseURL: 'https://theroutine-dccgcpdrckgqhahh.canadacentral-01.azurewebsites.net/api',
     headers: {
         'Content-Type': 'application/json',
     },
