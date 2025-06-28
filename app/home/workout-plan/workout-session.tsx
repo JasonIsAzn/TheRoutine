@@ -91,22 +91,15 @@ export default function WorkoutSessionScreen() {
 
     useEffect(() => {
         const initTodaySession = async () => {
-            console.log('Initializing today\'s session...');
-            console.log('User:', user);
-            console.log('Cycle:', cycle);
             if (!user || !cycle) return;
 
-            console.log('Today index:', todayIndex);
 
             const today = new Date().toISOString().split('T')[0];
-            console.log('Today date:', today);
             const cycleDayIndex = cycle.dayOrderMap.findIndex((d: number) => d === todayIndex);
-            console.log('Cycle day index:', cycleDayIndex);
             if (cycleDayIndex === -1) return;
 
             try {
                 const result = await fetchWorkoutSessionByDate(user.id, today);
-                console.log('Fetched session:', result);
                 setSession(result);
                 const ex = await fetchSessionExercises(result.id);
                 setExercises(ex);
@@ -118,7 +111,6 @@ export default function WorkoutSessionScreen() {
                     date: today
                 });
 
-                console.log('Created new session:', created);
                 const newSession = await fetchWorkoutSessionByDate(user.id, today);
                 setSession(newSession);
                 const ex = await fetchSessionExercises(newSession.id);
