@@ -1,57 +1,39 @@
-import { View, Text, Pressable } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { View, Text, ScrollView } from 'react-native';
 import { Link } from 'expo-router';
-import { useEffect } from 'react';
-import { pingServer } from 'api/healthCheck';
+import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
+
+import MenuSection from '@components/MenuSection';
+import MenuItem from '@components/MenuItem';
 
 export default function HomeScreen() {
-
-    useEffect(() => {
-        const testPing = async () => {
-            try {
-                const result = await pingServer();
-                console.log('Ping success:', result);
-            } catch (err) {
-                console.error('Ping failed:', err);
-            }
-        };
-
-        testPing();
-    }, [])
-
-
     return (
-        <View className="flex-1 bg-white p-4">
-            <Text className="text-xl font-bold mb-6">The Routine</Text>
-
-            {/* Link to open modal for user info + logout */}
-            <Link
-                href="/home/user-info"
-                className="mb-6 px-4 py-2 rounded bg-gray-200"
-            >
-                <Text className="text-black text-center font-medium">👤 View Profile</Text>
-            </Link>
-
-            {/* Navigation Links */}
-            <View className="space-y-3">
-                <Link href="/home/workout-plan">
-                    <Text className="text-lg">🏋️ gains</Text>
-                </Link>
-                <Link href="/home/body-log">
-                    <Text className="text-lg">📷 thiccness log</Text>
-                </Link>
-                <Link href="/home/performance">
-                    <Text className="text-lg">📊 PRs</Text>
-                </Link>
-                <Link href="/home/diet-tracker">
-                    <Text className="text-lg">🍽️ big back</Text>
-                </Link>
-                <Link href="/home/supplement-tracker">
-                    <Text className="text-lg">💊 roids</Text>
-                </Link>
-                <Link href="/home/progress-pictures">
-                    <Text className="text-lg">🪞 glow up</Text>
+        <SafeAreaView className="flex-1 bg-offwhite p-4">
+            {/* Navbar */}
+            <View className="flex-row justify-between items-center">
+                <Text className="text-3xl font-bold">The Routine</Text>
+                <Link href="/home/user-info">
+                    <FontAwesomeIcon icon={['fas', 'user']} size={24} color={"#FFD124"} />
                 </Link>
             </View>
-        </View>
+
+            {/* Menu Sections */}
+            <ScrollView className="flex-1 mt-8">
+                <MenuSection>
+                    <MenuItem href="/home/workout-plan" icon={['fas', 'dumbbell']} label="Gains" showDivider />
+                    <MenuItem href="/home/body-log" icon={['fas', 'camera']} label="Thiccness" showDivider />
+                    <MenuItem href="/home/performance" icon={['fas', 'chart-bar']} label="PRs" />
+                </MenuSection>
+
+                <MenuSection>
+                    <MenuItem href="/home/diet-tracker" icon={['fas', 'utensils']} label="Big Back" showDivider />
+                    <MenuItem href="/home/supplement-tracker" icon={['fas', 'pills']} label="Roids" />
+                </MenuSection>
+
+                <MenuSection>
+                    <MenuItem href="/home/progress-pictures" icon={['fas', 'camera']} label="Glow Up" />
+                </MenuSection>
+            </ScrollView>
+        </SafeAreaView>
     );
 }
