@@ -48,7 +48,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
     const logout = async () => {
         setUser(null);
-        await AsyncStorage.removeItem('user');
+        await AsyncStorage.multiRemove(['user', 'activePlan']);
     };
 
     return (

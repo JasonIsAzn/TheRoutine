@@ -38,13 +38,18 @@ namespace TheRoutineWeb.Controllers.Api
                 IsCompleted = session.IsCompleted,
                 Exercises = session.Exercises.Select(e =>
                 {
-                    return new WorkoutExerciseDto
+                    return new WorkoutSessionExerciseDto
                     {
+                        WorkoutSessionId = e.WorkoutSessionId,
                         Name = e.Name,
                         Muscles = e.Muscles,
                         IsOptional = e.IsOptional,
                         Order = e.Order,
-                        BaseExerciseId = e.BaseExerciseId ?? null
+                        Weight = e.Weight,
+                        IsCompleted = e.IsCompleted,
+                        IsSkipped = e.IsSkipped,
+                        IsDeleted = e.IsDeleted,
+                        BaseExerciseId = e.BaseExerciseId
                     };
                 }).ToList()
             };
@@ -126,6 +131,105 @@ namespace TheRoutineWeb.Controllers.Api
             await _context.SaveChangesAsync();
             return Ok();
         }
+
+        [HttpGet("all")]
+        public IActionResult GetAllSessions(int userId)
+        {
+            if (userId <= 0)
+            {
+                return BadRequest("Invalid userId.");
+            }
+
+            try
+            {
+                var sessions = _context.WorkoutSessions
+                    .Include(s => s.Exercises)
+                    .Where(s => s.UserId == userId)
+                    .ToList();
+
+                var sessionDtos = sessions.Select(s => new WorkoutSessionDto
+                {
+                    Id = s.Id,
+                    UserId = s.UserId,
+                    WorkoutCycleId = s.WorkoutCycleId,
+                    CycleDayIndex = s.DayIndex,
+                    Label = s.Label,
+                    IsCompleted = s.IsCompleted,
+                    Date = s.Date,
+                    Exercises = s.Exercises.Select(e => new WorkoutSessionExerciseDto
+                    {
+                        WorkoutSessionId = e.WorkoutSessionId,
+                        Name = e.Name,
+                        Muscles = e.Muscles,
+                        Order = e.Order,
+                        Weight = e.Weight,
+                        IsOptional = e.IsOptional,
+                        IsCompleted = e.IsCompleted,
+                        IsSkipped = e.IsSkipped,
+                        IsDeleted = e.IsDeleted,
+                        BaseExerciseId = e.BaseExerciseId
+                    }).ToList()
+                }).ToList();
+
+                return Ok(sessionDtos);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, "Internal server error.");
+            }
+        }
+
+        [HttpGet("by-id")]
+        public IActionResult GetSessionById(int sessionId)
+        {
+            if (sessionId <= 0)
+            {
+                return BadRequest("Invalid sessionId.");
+            }
+
+            try
+            {
+                var session = _context.WorkoutSessions
+                    .Include(s => s.Exercises)
+                    .FirstOrDefault(s => s.Id == sessionId);
+
+                if (session == null)
+                {
+                    return NotFound();
+                }
+
+                var dto = new WorkoutSessionDto
+                {
+                    Id = session.Id,
+                    UserId = session.UserId,
+                    WorkoutCycleId = session.WorkoutCycleId,
+                    CycleDayIndex = session.DayIndex,
+                    Label = session.Label,
+                    IsCompleted = session.IsCompleted,
+                    Date = session.Date,
+                    Exercises = session.Exercises.Select(e => new WorkoutSessionExerciseDto
+                    {
+                        WorkoutSessionId = e.WorkoutSessionId,
+                        Name = e.Name,
+                        Muscles = e.Muscles,
+                        Order = e.Order,
+                        Weight = e.Weight,
+                        IsOptional = e.IsOptional,
+                        IsCompleted = e.IsCompleted,
+                        IsSkipped = e.IsSkipped,
+                        IsDeleted = e.IsDeleted,
+                        BaseExerciseId = e.BaseExerciseId
+                    }).ToList()
+                };
+
+                return Ok(dto);
+            }
+            catch (Exception)
+            {
+                return StatusCode(500, "Internal server error.");
+            }
+        }
+
 
     }
     public class CreateWorkoutSessionRequest
