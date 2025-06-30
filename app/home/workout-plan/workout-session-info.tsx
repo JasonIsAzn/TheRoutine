@@ -23,7 +23,9 @@ export default function WorkoutSessionInfoModal() {
         loadSession();
     }, [sessionId]);
 
-    console.log('WorkoutSessionInfoModal loaded with session:', session);
+    if (process.env.NODE_ENV === 'development') {
+        console.log('WorkoutSessionInfoModal loaded with session:', session);
+    }
 
     if (loading) {
         return (
