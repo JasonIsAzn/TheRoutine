@@ -27,3 +27,18 @@ export const markWorkoutSessionAsCompleted = async (sessionId: number) => {
     const response = await api.patch(`/workoutsessionapi/${sessionId}/mark-complete`);
     return response.data;
 };
+
+
+export const fetchAllWorkoutSessions = async (userId: number) => {
+    const response = await api.get('/workoutsessionapi/all', {
+        params: { userId }
+    });
+    return response.data;
+};
+
+export const fetchWorkoutSessionById = async (sessionId: number) => {
+    const response = await api.get('/workoutsessionapi/by-id', {
+        params: { sessionId }
+    });
+    return response.data;
+};

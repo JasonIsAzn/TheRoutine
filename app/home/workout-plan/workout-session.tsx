@@ -447,6 +447,15 @@ export default function WorkoutSessionScreen() {
                         View Full Workout Plan
                     </Text>
                 </Pressable>
+
+                <Pressable
+                    className="bg-blue-600 px-4 py-3 rounded mt-10"
+                    onPress={() => router.push('/home/workout-plan/workout-calendar')}
+                >
+                    <Text className="text-white text-center font-semibold">
+                        View Full Calendar
+                    </Text>
+                </Pressable>
             </View>
         </ScrollView>
     );
