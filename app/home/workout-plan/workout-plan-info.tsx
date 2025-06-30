@@ -433,6 +433,14 @@ export default function WorkoutPlanInfoModal() {
                 <Pressable className="mt-6 bg-blue-600 px-6 py-3 rounded" onPress={handleUpdate}>
                     <Text className="text-white text-center font-semibold text-lg">Update Plan</Text>
                 </Pressable>
+
+                <Pressable
+                    className="mt-6 bg-red-600 px-4 py-3 rounded"
+                    onPress={handleDelete}
+                >
+                    <Text className="text-white text-center font-semibold">Delete Workout Plan</Text>
+                </Pressable>
+
             </ScrollView>
         );
     }
@@ -469,13 +477,6 @@ export default function WorkoutPlanInfoModal() {
                     ))}
                 </View>
             ))}
-
-            <Pressable
-                className="mt-6 bg-red-600 px-4 py-3 rounded"
-                onPress={handleDelete}
-            >
-                <Text className="text-white text-center font-semibold">Delete Workout Plan</Text>
-            </Pressable>
 
             <Pressable
                 className="mt-4 bg-gray-700 px-4 py-3 rounded"
