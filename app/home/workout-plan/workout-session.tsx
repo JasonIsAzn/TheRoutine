@@ -61,7 +61,7 @@ export default function WorkoutSessionScreen() {
 
     const [baseExercises, setBaseExercises] = useState<BaseExercise[]>([]);
 
-    const todayIndex = new Date().getDay();
+    const todayIndex = new Date().getUTCDay();
 
     useEffect(() => {
         const initialize = async () => {
@@ -93,6 +93,7 @@ export default function WorkoutSessionScreen() {
         const initTodaySession = async () => {
             if (!user || !cycle) return;
 
+
             const today = new Date().toISOString().split('T')[0];
             const cycleDayIndex = cycle.dayOrderMap.findIndex((d: number) => d === todayIndex);
             if (cycleDayIndex === -1) return;
@@ -109,6 +110,7 @@ export default function WorkoutSessionScreen() {
                     cycleDayIndex,
                     date: today
                 });
+
                 const newSession = await fetchWorkoutSessionByDate(user.id, today);
                 setSession(newSession);
                 const ex = await fetchSessionExercises(newSession.id);
