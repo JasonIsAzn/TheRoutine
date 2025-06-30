@@ -1,7 +1,24 @@
 import { View, Text, Pressable } from 'react-native';
 import { Link } from 'expo-router';
+import { useEffect } from 'react';
+import { pingServer } from 'api/healthCheck';
 
 export default function HomeScreen() {
+
+    useEffect(() => {
+        const testPing = async () => {
+            try {
+                const result = await pingServer();
+                console.log('Ping success:', result);
+            } catch (err) {
+                console.error('Ping failed:', err);
+            }
+        };
+
+        testPing();
+    }, [])
+
+
     return (
         <View className="flex-1 bg-white p-4">
             <Text className="text-xl font-bold mb-6">The Routine</Text>
