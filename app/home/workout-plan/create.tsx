@@ -1,57 +1,24 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useRef } from 'react';
 import { View, Text, TextInput, Pressable, ScrollView, Alert, Keyboard } from 'react-native';
 import { useAuth } from '../../../contexts/AuthContext';
 import { createWorkoutPlan } from '../../../api/workoutPlan';
-import { router } from 'expo-router';
-import { BaseExercise, WorkoutExercise } from 'types/workout';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { Picker } from '@react-native-picker/picker';
-import { fetchBaseExercises } from '../../../api/baseExercise';
-
-interface EditableWorkoutDay {
-    label: string;
-    order: number;
-    selected: boolean;
-    exercises: WorkoutExercise[];
-    isEditing?: boolean;
-}
-
-
+import { useRouter } from 'expo-router';
+import { useWorkoutPlan } from '../../../contexts/WorkoutPlanContext';
 
 const weekdays = ['S', 'M', 'T', 'W', 'T', 'F', 'S'];
-const fullDayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
 
 export default function CreateWorkoutPlanScreen() {
     const { user } = useAuth();
+    const router = useRouter();
 
     const [planName, setPlanName] = useState('Default Plan Name');
     const [oldPlanName, setOldPlanName] = useState("");
-    const [baseExercises, setBaseExercises] = useState<BaseExercise[]>([]);
     const [isEditing, setIsEditing] = useState(false);
+    const { days, setDays } = useWorkoutPlan();
 
-    const [days, setDays] = useState<EditableWorkoutDay[]>(
-        fullDayNames.map((day, i) => ({
-            order: i,
-            selected: false,
-            label: `Default ${day} Name`,
-            exercises: [],
-        }))
-    );
     const inputRef = useRef<TextInput>(null);
     const inputRefs = useRef<Array<TextInput | null>>([]);
-
-    useEffect(() => {
-        const loadExercises = async () => {
-            try {
-                const res = await fetchBaseExercises();
-                setBaseExercises(res);
-            } catch (err) {
-                console.error('Failed to load base exercises:', err);
-            }
-        };
-        loadExercises();
-    }, []);
-
 
     const handleRename = () => {
         setIsEditing(true);
@@ -75,7 +42,6 @@ export default function CreateWorkoutPlanScreen() {
             prev.map((d, i) => (i === index ? { ...d, selected: !d.selected } : d))
         );
     };
-
 
     const toggleEditLabel = (index: number, isEditing: boolean) => {
         setDays(prev =>
@@ -105,84 +71,6 @@ export default function CreateWorkoutPlanScreen() {
                     label: trimmed === '' ? `Default Day ${index + 1}` : trimmed,
                     isEditing: false,
                 };
-            })
-        );
-    };
-
-
-    const addExercise = (dayIndex: number) => {
-        setDays(prev =>
-            prev.map((d, i) =>
-                i === dayIndex
-                    ? {
-                        ...d,
-                        exercises: [
-                            ...d.exercises,
-                            { name: '', muscles: [''], isOptional: false, order: d.exercises.length, useBaseSelect: false, baseExerciseId: undefined },
-                        ],
-                    }
-                    : d
-            )
-        );
-    };
-
-    const updateExercise = (
-        dayIndex: number,
-        exIndex: number,
-        field: keyof WorkoutExercise,
-        value: any
-    ) => {
-        setDays(prev =>
-            prev.map((d, i) =>
-                i === dayIndex
-                    ? {
-                        ...d,
-                        exercises: d.exercises.map((ex, j) =>
-                            j === exIndex ? { ...ex, [field]: value } : ex
-                        ),
-                    }
-                    : d
-            )
-        );
-    };
-
-    const updateMuscle = (dayIndex: number, exIndex: number, mIndex: number, value: string) => {
-        setDays(prev =>
-            prev.map((d, i) => {
-                if (i !== dayIndex) return d;
-                const updatedExercises = d.exercises.map((ex, j) => {
-                    if (j !== exIndex) return ex;
-                    const newMuscles = [...ex.muscles];
-                    newMuscles[mIndex] = value;
-                    return { ...ex, muscles: newMuscles };
-                });
-                return { ...d, exercises: updatedExercises };
-            })
-        );
-    };
-
-    const addMuscle = (dayIndex: number, exIndex: number) => {
-        setDays(prev =>
-            prev.map((d, i) => {
-                if (i !== dayIndex) return d;
-                const updatedExercises = d.exercises.map((ex, j) => {
-                    if (j !== exIndex) return ex;
-                    return { ...ex, muscles: [...ex.muscles, ''] };
-                });
-                return { ...d, exercises: updatedExercises };
-            })
-        );
-    };
-
-    const removeMuscle = (dayIndex: number, exIndex: number, mIndex: number) => {
-        setDays(prev =>
-            prev.map((d, i) => {
-                if (i !== dayIndex) return d;
-                const updatedExercises = d.exercises.map((ex, j) => {
-                    if (j !== exIndex) return ex;
-                    return { ...ex, muscles: ex.muscles.filter((_, idx) => idx !== mIndex) };
-                });
-                return { ...d, exercises: updatedExercises };
             })
         );
     };
@@ -234,6 +122,12 @@ export default function CreateWorkoutPlanScreen() {
         }
     };
 
+    const openAddExerciseModal = (dayIndex: number) => {
+        router.push({
+            pathname: '/home/workout-plan/add-exercise',
+            params: { dayIndex: dayIndex.toString() },
+        });
+    };
 
     return (
         <View className="flex-1 relative bg-background">
@@ -345,15 +239,15 @@ export default function CreateWorkoutPlanScreen() {
                             ))}
 
                             <Pressable
-                                className="bg-green-600 rounded px-4 py-2"
-                                onPress={() => addExercise(i)}
+                                className="bg-primary rounded-xl px-4 py-2 justify-center items-center w-1/2 self-center my-4"
+                                onPress={() => openAddExerciseModal(i)}
                             >
-                                <Text className="text-white text-sm">+ Add Exercise</Text>
+                                <Text className="text-black text-center">Add Exercise</Text>
                             </Pressable>
+
                         </View>
                     )
                 )}
-
 
                 <View className="mb-32"></View>
             </ScrollView>
@@ -365,98 +259,7 @@ export default function CreateWorkoutPlanScreen() {
                     <Text className="text-black text-center font-bold text-xl">Create Plan</Text>
                 </Pressable>
             </View>
+
         </View>
     );
 }
-
-//    {day.exercises.map((ex, j) => (
-//                                 <View key={j} className="mb-3 ml-2">
-//                                     {/* Toggle between Manual and Base */}
-//                                     <View className="flex-row mb-2 items-center">
-//                                         <Text className="mr-2">Use Base:</Text>
-//                                         <Pressable
-//                                             className={`px-3 py-1 rounded ${ex.useBaseSelect ? 'bg-green-600' : 'bg-gray-400'}`}
-//                                             onPress={() => updateExercise(i, j, 'useBaseSelect', !ex.useBaseSelect)}
-//                                         >
-//                                             <Text className="text-white">{ex.useBaseSelect ? 'ON' : 'OFF'}</Text>
-//                                         </Pressable>
-//                                     </View>
-
-//                                     {/* Show Picker or TextInput based on toggle */}
-//                                     {ex.useBaseSelect ? (
-//                                         <View className="border border-gray-300 rounded mb-2">
-//                                             <Picker
-//                                                 selectedValue={ex.baseExerciseId ?? ''}
-//                                                 onValueChange={(baseId) => {
-//                                                     const selected = baseExercises.find(b => b.id === baseId);
-//                                                     if (selected) {
-//                                                         updateExercise(i, j, 'baseExerciseId', selected.id);
-//                                                         updateExercise(i, j, 'name', selected.name);
-//                                                         updateExercise(i, j, 'muscles', selected.muscles);
-//                                                     }
-//                                                 }}
-//                                             >
-//                                                 <Picker.Item label="Select Exercise..." value="" />
-//                                                 {baseExercises.map((base) => (
-//                                                     <Picker.Item key={base.id} label={base.name} value={base.id} />
-//                                                 ))}
-//                                             </Picker>
-//                                         </View>
-//                                     ) : (
-//                                         <TextInput
-//                                             className="border border-gray-300 rounded px-3 py-1 mb-1"
-//                                             placeholder="Exercise name"
-//                                             value={ex.name}
-//                                             onChangeText={text => updateExercise(i, j, 'name', text)}
-//                                         />
-//                                     )}
-
-//                                     <TextInput
-//                                         className="border border-gray-300 rounded px-3 py-1 mb-1"
-//                                         placeholder="Order"
-//                                         keyboardType="numeric"
-//                                         value={String(ex.order)}
-//                                         onChangeText={text => updateExercise(i, j, 'order', parseInt(text))}
-//                                     />
-
-//                                     {/* Muscle fields */}
-//                                     {ex.muscles.map((muscle, mIndex) => (
-//                                         <View key={mIndex} className="flex-row items-center mb-1">
-//                                             <TextInput
-//                                                 className="flex-1 border border-gray-300 rounded px-3 py-1 mr-2"
-//                                                 placeholder={`Muscle ${mIndex + 1}`}
-//                                                 value={muscle}
-//                                                 onChangeText={text => updateMuscle(i, j, mIndex, text)}
-//                                             />
-//                                             <Pressable
-//                                                 onPress={() => removeMuscle(i, j, mIndex)}
-//                                                 className="w-16 h-8 bg-red-500 rounded justify-center items-center"
-//                                             >
-//                                                 <Text className="text-white text-base font-bold">X</Text>
-//                                             </Pressable>
-//                                         </View>
-//                                     ))}
-
-//                                     <Pressable
-//                                         className="bg-blue-600 px-2 py-1 rounded self-start mb-2"
-//                                         onPress={() => addMuscle(i, j)}
-//                                     >
-//                                         <Text className="text-white text-xs">+ Add Muscle</Text>
-//                                     </Pressable>
-
-//                                     <Pressable
-//                                         className="bg-red-500 rounded px-2 py-1 self-start"
-//                                         onPress={() => deleteExercise(i, j)}
-//                                     >
-//                                         <Text className="text-white text-xs">Delete Exercise</Text>
-//                                     </Pressable>
-//                                 </View>
-//                             ))}
-
-
-//                             <Pressable
-//                                 className="bg-green-600 rounded px-4 py-2"
-//                                 onPress={() => addExercise(i)}
-//                             >
-//                                 <Text className="text-white text-sm">+ Add Exercise</Text>
-//                             </Pressable>
