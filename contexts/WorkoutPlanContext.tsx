@@ -13,6 +13,7 @@ interface WorkoutPlanContextType {
     days: EditableWorkoutDay[];
     setDays: React.Dispatch<React.SetStateAction<EditableWorkoutDay[]>>;
     addExerciseToDay: (dayIndex: number, ex: WorkoutExercise) => void;
+    resetWorkoutPlan: () => void;
 }
 
 const WorkoutPlanContext = createContext<WorkoutPlanContextType | undefined>(undefined);
@@ -39,8 +40,18 @@ export const WorkoutPlanProvider = ({ children }: { children: ReactNode }) => {
         );
     };
 
+    const resetWorkoutPlan = () => {
+        setDays(fullDayNames.map((day, i) => ({
+            order: i,
+            selected: false,
+            label: `Default ${day} Name`,
+            exercises: [],
+        })));
+    };
+
+
     return (
-        <WorkoutPlanContext.Provider value={{ days, setDays, addExerciseToDay }}>
+        <WorkoutPlanContext.Provider value={{ days, setDays, addExerciseToDay, resetWorkoutPlan }}>
             {children}
         </WorkoutPlanContext.Provider>
     );

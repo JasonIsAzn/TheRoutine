@@ -15,7 +15,7 @@ export default function CreateWorkoutPlanScreen() {
     const [planName, setPlanName] = useState('Default Plan Name');
     const [oldPlanName, setOldPlanName] = useState("");
     const [isEditing, setIsEditing] = useState(false);
-    const { days, setDays } = useWorkoutPlan();
+    const { days, setDays, resetWorkoutPlan } = useWorkoutPlan();
 
     const inputRef = useRef<TextInput>(null);
     const inputRefs = useRef<Array<TextInput | null>>([]);
@@ -115,6 +115,7 @@ export default function CreateWorkoutPlanScreen() {
                 version: version,
             };
             await AsyncStorage.setItem('activePlan', JSON.stringify(activePlanData));
+            resetWorkoutPlan();
             router.replace('/home/workout-plan/workout-session');
         } catch (err) {
             console.error(err);
