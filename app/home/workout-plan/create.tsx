@@ -133,7 +133,7 @@ export default function CreateWorkoutPlanScreen() {
     return (
         <View className="flex-1 relative bg-background">
             <ScrollView className="flex-1 px-4 py-6">
-                {/* Workout Plan TItle */}
+                {/* Workout Plan Title */}
                 <View className="flex-row items-center mb-8">
                     {isEditing ? (
                         <TextInput
