@@ -210,7 +210,7 @@ export default function CreateWorkoutPlanScreen() {
                 {/* Exercise Day Mapping */}
                 {days.map((day, i) =>
                     day.selected && (
-                        <View key={i} className="mb-6 border-b border-gray-200 pb-4">
+                        <View key={i} className="mb-6 pb-4">
                             <View className="flex-row items-center mb-2 justify-between">
                                 <View className="flex-row items-center">
 
@@ -263,7 +263,7 @@ export default function CreateWorkoutPlanScreen() {
                                                 </Text>
                                             </View>
                                             <Pressable onPress={() => deleteExercise(i, j)}>
-                                                <Text className="text-gray-500 text-xl">✕</Text>
+                                                <FontAwesomeIcon icon={['far', 'circle-xmark']} size={20} color="#555" />
                                             </Pressable>
                                         </View>
                                     ))}

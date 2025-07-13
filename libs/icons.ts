@@ -1,4 +1,5 @@
 import { library } from '@fortawesome/fontawesome-svg-core';
+
 import {
     faSquareCheck,
     faUser,
@@ -11,7 +12,22 @@ import {
     faChevronDown,
     faChevronUp,
     faBars,
-    faCircleXmark
 } from '@fortawesome/free-solid-svg-icons';
 
-library.add(faSquareCheck, faUser, faDumbbell, faChartBar, faCamera, faUtensils, faPills, faChevronRight, faChevronDown, faChevronUp, faBars, faCircleXmark);
+import { faCircleXmark as farCircleXmark } from '@fortawesome/free-regular-svg-icons';
+
+library.add(
+    faSquareCheck,
+    faUser,
+    faDumbbell,
+    faChartBar,
+    faCamera,
+    faUtensils,
+    faPills,
+    faChevronRight,
+    faChevronDown,
+    faChevronUp,
+    faBars,
+
+    farCircleXmark
+);
