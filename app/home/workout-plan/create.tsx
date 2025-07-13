@@ -168,7 +168,7 @@ export default function CreateWorkoutPlanScreen() {
                             <Pressable
                                 key={i}
                                 onPress={() => toggleDay(i)}
-                                className={`mr-4 h-9 w-9 rounded-lg bg-gray-2 items-center justify-center ${days[i].selected && 'bg-primary'}`}
+                                className={`mr-4 h-9 w-9 rounded-lg bg-gray-2 items-center justify-center ${days[i].selected ? 'bg-primary' : ''}`}
                             >
                                 <Text className="text-black">
                                     {w}
