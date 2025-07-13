@@ -8,7 +8,7 @@ import MenuItem from '@components/MenuItem';
 
 export default function HomeScreen() {
     return (
-        <SafeAreaView className="flex-1 bg-offwhite p-4">
+        <SafeAreaView className="flex-1 p-4 bg-background">
             {/* Navbar */}
             <View className="flex-row justify-between items-center">
                 <Text className="text-3xl font-bold">The Routine</Text>
