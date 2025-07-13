@@ -1,10 +1,11 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { View, Text, TextInput, Pressable, ScrollView, Alert, Keyboard } from 'react-native';
 import { useAuth } from '../../../contexts/AuthContext';
 import { createWorkoutPlan } from '../../../api/workoutPlan';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useRouter } from 'expo-router';
 import { useWorkoutPlan } from '../../../contexts/WorkoutPlanContext';
+import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
 
 const weekdays = ['S', 'M', 'T', 'W', 'T', 'F', 'S'];
 
@@ -16,9 +17,14 @@ export default function CreateWorkoutPlanScreen() {
     const [oldPlanName, setOldPlanName] = useState("");
     const [isEditing, setIsEditing] = useState(false);
     const { days, setDays, resetWorkoutPlan } = useWorkoutPlan();
+    const [expandedDays, setExpandedDays] = useState<Set<number>>(new Set());
 
     const inputRef = useRef<TextInput>(null);
     const inputRefs = useRef<Array<TextInput | null>>([]);
+
+    useEffect(() => {
+        resetWorkoutPlan();
+    }, [])
 
     const handleRename = () => {
         setIsEditing(true);
@@ -41,6 +47,17 @@ export default function CreateWorkoutPlanScreen() {
         setDays(prev =>
             prev.map((d, i) => (i === index ? { ...d, selected: !d.selected } : d))
         );
+
+        setExpandedDays(prev => {
+            const updated = new Set(prev);
+            const isSelected = days[index].selected;
+            if (!isSelected) {
+                updated.add(index);
+            } else {
+                updated.delete(index);
+            }
+            return updated;
+        });
     };
 
     const toggleEditLabel = (index: number, isEditing: boolean) => {
@@ -73,6 +90,18 @@ export default function CreateWorkoutPlanScreen() {
                 };
             })
         );
+    };
+
+    const toggleExpandDay = (index: number) => {
+        setExpandedDays(prev => {
+            const next = new Set(prev);
+            if (next.has(index)) {
+                next.delete(index);
+            } else {
+                next.add(index);
+            }
+            return next;
+        });
     };
 
     const deleteExercise = (dayIndex: number, exIndex: number) => {
@@ -182,70 +211,71 @@ export default function CreateWorkoutPlanScreen() {
                 {days.map((day, i) =>
                     day.selected && (
                         <View key={i} className="mb-6 border-b border-gray-200 pb-4">
-                            <View
-                                className="flex-row items-center mb-2"
-                                style={{ height: 24 }}
-                            >
-                                {day.isEditing ? (
-                                    <TextInput
-                                        ref={el => { inputRefs.current[i] = el; }}
-                                        value={day.label}
-                                        onChangeText={text => updateLabel(i, text)}
-                                        onBlur={() => saveLabel(i)}
-                                        onSubmitEditing={() => saveLabel(i)}
-                                        className="font-bold mr-3"
-                                        style={{
-                                            fontSize: 18,
-                                            lineHeight: 22,
-                                        }}
-                                    />
-                                ) : (
-                                    <Text
-                                        className="font-bold mr-3"
-                                        style={{
-                                            fontSize: 18,
-                                            lineHeight: 22,
-                                            includeFontPadding: false,
-                                        }}
-                                    >
-                                        {day.label}
-                                    </Text>
-                                )}
+                            <View className="flex-row items-center mb-2 justify-between">
+                                <View className="flex-row items-center">
 
-                                {day.isEditing ? (
-                                    <Pressable onPress={() => saveLabel(i)}>
-                                        <Text className="underline text-primary text-lg">done</Text>
+                                    <Pressable onPress={() => toggleExpandDay(i)} className='px-2 py-1'>
+                                        <FontAwesomeIcon
+                                            icon={['fas', expandedDays.has(i) ? 'chevron-up' : 'chevron-down']}
+                                            size={18}
+                                            color="#000"
+                                        />
                                     </Pressable>
-                                ) : (
-                                    <Pressable onPress={() => toggleEditLabel(i, true)}>
-                                        <Text className="underline text-primary text-lg">rename</Text>
-                                    </Pressable>
-                                )}
+                                    {day.isEditing ? (
+                                        <TextInput
+                                            ref={el => { inputRefs.current[i] = el; }}
+                                            value={day.label}
+                                            onChangeText={text => updateLabel(i, text)}
+                                            onBlur={() => saveLabel(i)}
+                                            onSubmitEditing={() => saveLabel(i)}
+                                            className="font-bold mr-3"
+                                            style={{ fontSize: 18, lineHeight: 22 }}
+                                        />
+                                    ) : (
+                                        <Text
+                                            className="font-bold mr-3"
+                                            style={{ fontSize: 18, lineHeight: 22, includeFontPadding: false }}
+                                        >
+                                            {day.label}
+                                        </Text>
+                                    )}
+
+                                    {day.isEditing ? (
+                                        <Pressable onPress={() => saveLabel(i)}>
+                                            <Text className="underline text-primary text-lg">done</Text>
+                                        </Pressable>
+                                    ) : (
+                                        <Pressable onPress={() => toggleEditLabel(i, true)}>
+                                            <Text className="underline text-primary text-lg">rename</Text>
+                                        </Pressable>
+                                    )}
+                                </View>
                             </View>
 
+                            {expandedDays.has(i) && (
+                                <>
+                                    {day.exercises.map((ex, j) => (
+                                        <View key={j} className="flex-row items-center justify-between mb-3 ml-2">
+                                            <View>
+                                                <Text className="text-base font-semibold">{ex.name}</Text>
+                                                <Text className="text-gray-500 text-sm">
+                                                    {ex.muscles.join(', ')}
+                                                </Text>
+                                            </View>
+                                            <Pressable onPress={() => deleteExercise(i, j)}>
+                                                <Text className="text-gray-500 text-xl">✕</Text>
+                                            </Pressable>
+                                        </View>
+                                    ))}
 
-
-                            {day.exercises.map((ex, j) => (
-                                <View key={j} className="flex-row items-center justify-between mb-3 ml-2">
-                                    <View>
-                                        <Text className="text-base font-semibold">{ex.name}</Text>
-                                        <Text className="text-gray-500 text-sm">
-                                            {ex.muscles.join(', ')}
-                                        </Text>
-                                    </View>
-                                    <Pressable onPress={() => deleteExercise(i, j)}>
-                                        <Text className="text-gray-500 text-xl">✕</Text>
+                                    <Pressable
+                                        className="bg-primary rounded-xl px-4 py-2 justify-center items-center w-1/2 self-center my-4"
+                                        onPress={() => openAddExerciseModal(i)}
+                                    >
+                                        <Text className="text-black text-center">Add Exercise</Text>
                                     </Pressable>
-                                </View>
-                            ))}
-
-                            <Pressable
-                                className="bg-primary rounded-xl px-4 py-2 justify-center items-center w-1/2 self-center my-4"
-                                onPress={() => openAddExerciseModal(i)}
-                            >
-                                <Text className="text-black text-center">Add Exercise</Text>
-                            </Pressable>
-
+                                </>
+                            )}
                         </View>
                     )
                 )}

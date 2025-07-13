@@ -7,7 +7,11 @@ import {
     faCamera,
     faUtensils,
     faPills,
-    faChevronRight
+    faChevronRight,
+    faChevronDown,
+    faChevronUp,
+    faBars,
+    faCircleXmark
 } from '@fortawesome/free-solid-svg-icons';
 
-library.add(faSquareCheck, faUser, faDumbbell, faChartBar, faCamera, faUtensils, faPills, faChevronRight);
+library.add(faSquareCheck, faUser, faDumbbell, faChartBar, faCamera, faUtensils, faPills, faChevronRight, faChevronDown, faChevronUp, faBars, faCircleXmark);
