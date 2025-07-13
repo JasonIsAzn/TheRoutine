@@ -280,6 +280,81 @@ export default function CreateWorkoutPlanScreen() {
                     )
                 )}
 
+                <Pressable
+                    className="mt-4 bg-purple-600 px-6 py-3 rounded"
+                    onPress={() => {
+                        setPlanName('4 Day Upper/Lower');
+
+                        setDays([
+                            // Sunday
+                            { order: 0, label: 'Rest Day', selected: false, exercises: [] },
+                            // Monday – Upper (Chest, Back, Arms)
+                            {
+                                order: 1,
+                                label: 'Upper (Chest, Back, Arms)',
+                                selected: true,
+                                exercises: [
+                                    { name: 'Incline Dumbbell Press', order: 0, isOptional: false, muscles: ['Chest'] },
+                                    { name: 'Neutral-Grip Lat Pulldown', order: 1, isOptional: false, muscles: ['Back'] },
+                                    { name: 'Flat Barbell/Dumbell Bench Press', order: 2, isOptional: false, muscles: ['Chest'] },
+                                    { name: 'Chest-Supported Row', order: 3, isOptional: false, muscles: ['Back'] },
+                                    { name: 'Machine Preacher Curls', order: 4, isOptional: false, muscles: ['Biceps'] },
+                                    { name: 'Tricep Bar Pushdown', order: 5, isOptional: false, muscles: ['Triceps'] },
+                                ],
+                            },
+                            // Tuesday – Lower (Glutes, Hamstrings)
+                            {
+                                order: 2,
+                                label: 'Lower (Glutes, Hamstrings)',
+                                selected: true,
+                                exercises: [
+                                    { name: 'Hip Thrusts', order: 0, isOptional: false, muscles: ['Glutes'] },
+                                    { name: 'Bulgarian Split Squats (Drop Set)', order: 1, isOptional: false, muscles: ['Quads', 'Glutes'] },
+                                    { name: 'Lying Leg Curls', order: 2, isOptional: false, muscles: ['Hamstrings'] },
+                                    { name: 'Abduction + Adduction Machine', order: 3, isOptional: false, muscles: ['Glutes'] },
+                                    { name: 'Standing Calf Raises', order: 4, isOptional: false, muscles: ['Calves'] },
+                                ],
+                            },
+                            // Wednesday
+                            { order: 3, label: 'Rest Day', selected: false, exercises: [] },
+                            // Thursday – Upper (Shoulders, Arms, Back)
+                            {
+                                order: 4,
+                                label: 'Upper (Shoulders, Arms, Back)',
+                                selected: true,
+                                exercises: [
+                                    { name: 'Dumbbell Shoulder Press', order: 0, isOptional: false, muscles: ['Shoulders'] },
+                                    { name: 'Machine Lateral Raises', order: 1, isOptional: false, muscles: ['Shoulders'] },
+                                    { name: 'Lat Extensions w/ straight bar', order: 2, isOptional: false, muscles: ['Back'] },
+                                    { name: 'Hammer Curls', order: 3, isOptional: false, muscles: ['Biceps'] },
+                                    { name: 'Overhead Tricep Cable Extension', order: 4, isOptional: false, muscles: ['Triceps'] },
+                                    { name: 'Assisted Pullups', order: 5, isOptional: false, muscles: ['Back'] },
+                                ],
+                            },
+                            // Friday
+                            { order: 5, label: 'Rest Day', selected: false, exercises: [] },
+                            // Saturday – Lower (Quad-Focused with Glutes & Hamstrings)
+                            {
+                                order: 6,
+                                label: 'Lower (Quad-Focused with Glutes & Hamstrings)',
+                                selected: true,
+                                exercises: [
+                                    { name: 'Leg Extension (Drop Set)', order: 0, isOptional: false, muscles: ['Quads'] },
+                                    { name: 'Smith Machine Squats', order: 1, isOptional: false, muscles: ['Quads', 'Glutes'] },
+                                    { name: 'Seated Leg Curl', order: 2, isOptional: false, muscles: ['Hamstrings'] },
+                                    { name: 'Standing Leg Curl', order: 3, isOptional: false, muscles: ['Hamstrings'] },
+                                    { name: 'Leg Press + Sissy Squats', order: 4, isOptional: false, muscles: ['Quads'] },
+                                ],
+                            },
+                        ]);
+                    }}
+                >
+                    <Text className="text-white text-center font-semibold text-lg">
+                        Use Pre-Made 4-Day Upper/Lower Plan
+                    </Text>
+                </Pressable>
+
+
                 <View className="mb-32"></View>
             </ScrollView>
 
