@@ -211,6 +211,8 @@ export default function WorkoutPlanInfoModal() {
             await AsyncStorage.setItem('activePlan', JSON.stringify(activePlanData));
 
             Alert.alert('Success', 'Plan updated.');
+
+            router.dismiss();
             router.replace('/home/workout-plan/workout-session');
         } catch (err) {
             console.error(err);
