@@ -296,12 +296,8 @@ export default function CreateWorkoutPlanScreen() {
                 <Pressable
                     className="mt-4 bg-purple-600 px-6 py-3 rounded"
                     onPress={() => {
-                        setPlanName('4 Day Upper/Lower');
-
-                        setDays([
-                            // Sunday
+                        const newDays = [
                             { order: 0, label: 'Rest Day', selected: false, exercises: [] },
-                            // Monday – Upper (Chest, Back, Arms)
                             {
                                 order: 1,
                                 label: 'Upper (Chest, Back, Arms)',
@@ -315,7 +311,6 @@ export default function CreateWorkoutPlanScreen() {
                                     { name: 'Tricep Bar Pushdown', order: 5, isOptional: false, muscles: ['Triceps'] },
                                 ],
                             },
-                            // Tuesday – Lower (Glutes, Hamstrings)
                             {
                                 order: 2,
                                 label: 'Lower (Glutes, Hamstrings)',
@@ -328,9 +323,7 @@ export default function CreateWorkoutPlanScreen() {
                                     { name: 'Standing Calf Raises', order: 4, isOptional: false, muscles: ['Calves'] },
                                 ],
                             },
-                            // Wednesday
                             { order: 3, label: 'Rest Day', selected: false, exercises: [] },
-                            // Thursday – Upper (Shoulders, Arms, Back)
                             {
                                 order: 4,
                                 label: 'Upper (Shoulders, Arms, Back)',
@@ -344,9 +337,7 @@ export default function CreateWorkoutPlanScreen() {
                                     { name: 'Assisted Pullups', order: 5, isOptional: false, muscles: ['Back'] },
                                 ],
                             },
-                            // Friday
                             { order: 5, label: 'Rest Day', selected: false, exercises: [] },
-                            // Saturday – Lower (Quad-Focused with Glutes & Hamstrings)
                             {
                                 order: 6,
                                 label: 'Lower (Quad-Focused with Glutes & Hamstrings)',
@@ -359,7 +350,16 @@ export default function CreateWorkoutPlanScreen() {
                                     { name: 'Leg Press + Sissy Squats', order: 4, isOptional: false, muscles: ['Quads'] },
                                 ],
                             },
-                        ]);
+                        ];
+
+                        setPlanName('4 Day Upper/Lower');
+                        setDays(newDays);
+
+                        const expanded = new Set<number>();
+                        newDays.forEach((d, i) => {
+                            if (d.selected) expanded.add(i);
+                        });
+                        setExpandedDays(expanded);
                     }}
                 >
                     <Text className="text-white text-center font-semibold text-lg">
