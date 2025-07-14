@@ -45,7 +45,17 @@ export default function CreateWorkoutPlanScreen() {
 
     const toggleDay = (index: number) => {
         setDays(prev =>
-            prev.map((d, i) => (i === index ? { ...d, selected: !d.selected } : d))
+            prev.map((d, i) => {
+                if (i === index) {
+                    const newSelected = !d.selected;
+                    return {
+                        ...d,
+                        selected: newSelected,
+                        exercises: newSelected ? d.exercises : [],
+                    };
+                }
+                return d;
+            })
         );
 
         setExpandedDays(prev => {
@@ -59,6 +69,7 @@ export default function CreateWorkoutPlanScreen() {
             return updated;
         });
     };
+
 
     const toggleEditLabel = (index: number, isEditing: boolean) => {
         setDays(prev =>
