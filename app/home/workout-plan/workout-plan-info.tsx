@@ -1,137 +1,221 @@
-// Updated WorkoutPlanInfoModal to support base exercise selection like the create screen
-import { useState, useEffect } from 'react';
-import { View, Text, ScrollView, Pressable, Alert, TextInput } from 'react-native';
-import { useWorkoutPlan } from '../../../hooks/useWorkoutPlan';
-import { deactivateWorkoutPlan, createWorkoutPlan } from '../../../api/workoutPlan';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import { router } from 'expo-router';
+import { useState, useRef, useEffect } from 'react';
+import { View, Text, TextInput, Pressable, ScrollView, Alert, Keyboard } from 'react-native';
 import { useAuth } from '../../../contexts/AuthContext';
-import { WorkoutDay, WorkoutExercise, BaseExercise } from 'types/workout';
+import { createWorkoutPlan, deactivateWorkoutPlan } from '../../../api/workoutPlan'; // Use your create logic for new versioning
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useRouter } from 'expo-router';
+import { useWorkoutPlan } from '../../../contexts/WorkoutPlanContext';
+import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
+import { fetchWorkoutSessionByDate, deleteWorkoutSession } from '../../../api/workoutSession';
 import { deactivateWorkoutCycle, updateWorkoutCyclePlanId } from '../../../api/workoutCycle';
-import { deleteWorkoutSession, fetchWorkoutSessionByDate } from 'api/workoutSession';
-import { Picker } from '@react-native-picker/picker';
-import { fetchBaseExercises } from '../../../api/baseExercise';
-
-interface EditableWorkoutDay {
-    label: string;
-    order: number;
-    selected: boolean;
-    exercises: (WorkoutExercise & { useBaseSelect?: boolean })[];
-}
 
 const weekdays = ['S', 'M', 'T', 'W', 'T', 'F', 'S'];
-const fullDayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
 
 export default function WorkoutPlanInfoModal() {
-    const { plan, loading } = useWorkoutPlan();
     const { user } = useAuth();
-    const [isEditing, setIsEditing] = useState(false);
+    const router = useRouter();
+
     const [planName, setPlanName] = useState('');
-    const [days, setDays] = useState<EditableWorkoutDay[]>([]);
-    const [baseExercises, setBaseExercises] = useState<BaseExercise[]>([]);
+    const [oldPlanName, setOldPlanName] = useState('');
+    const [isEditing, setIsEditing] = useState(false);
+    const { days, setDays } = useWorkoutPlan();
+    const [expandedDays, setExpandedDays] = useState<Set<number>>(new Set());
+
+    const inputRef = useRef<TextInput>(null);
+    const inputRefs = useRef<Array<TextInput | null>>([]);
 
     useEffect(() => {
-        const loadBaseExercises = async () => {
+        const loadPlan = async () => {
             try {
-                const res = await fetchBaseExercises();
-                setBaseExercises(res);
+                const stored = await AsyncStorage.getItem('activePlan');
+                if (stored) {
+                    const plan = JSON.parse(stored);
+                    setPlanName(plan.name);
+
+                    const loadedDays = plan.workoutDays.map((d: any) => ({
+                        order: d.order,
+                        label: d.label === 'Rest Day' ? `Default Day ${d.order + 1}` : d.label,
+                        selected: d.label !== 'Rest Day',
+                        exercises: d.exercises,
+                    }));
+
+                    setDays(loadedDays);
+
+                    const expanded = new Set<number>();
+                    loadedDays.forEach((d: any, i: number) => {
+                        if (d.selected) expanded.add(i);
+                    });
+                    setExpandedDays(expanded);
+                }
             } catch (err) {
-                console.error('Failed to fetch base exercises:', err);
+                console.error('Failed to load plan', err);
             }
         };
-        loadBaseExercises();
+        loadPlan();
     }, []);
+    const handleRename = () => {
+        setIsEditing(true);
+        setOldPlanName(planName);
+        setTimeout(() => {
+            inputRef.current?.focus();
+        }, 100);
+    };
+
+    const handleSave = () => {
+        setIsEditing(false);
+        Keyboard.dismiss();
+        if (planName.trim() === '') {
+            setPlanName(oldPlanName);
+        }
+    };
 
     const toggleDay = (index: number) => {
         setDays(prev =>
-            prev.map((d, i) => (i === index ? { ...d, selected: !d.selected } : d))
+            prev.map((d, i) => {
+                if (i === index) {
+                    const newSelected = !d.selected;
+                    return {
+                        ...d,
+                        selected: newSelected,
+                        exercises: newSelected ? d.exercises : [],
+                    };
+                }
+                return d;
+            })
         );
+
+        setExpandedDays(prev => {
+            const updated = new Set(prev);
+            if (!prev.has(index)) {
+                updated.add(index);
+            } else {
+                updated.delete(index);
+            }
+            return updated;
+        });
+    };
+
+    const toggleEditLabel = (index: number, isEditing: boolean) => {
+        setDays(prev => prev.map((d, i) => (i === index ? { ...d, isEditing } : d)));
+
+        if (isEditing) {
+            setTimeout(() => {
+                inputRefs.current[index]?.focus();
+            }, 100);
+        }
     };
 
     const updateLabel = (index: number, label: string) => {
         setDays(prev => prev.map((d, i) => (i === index ? { ...d, label } : d)));
     };
 
-    const addExercise = (dayIndex: number) => {
+    const saveLabel = (index: number) => {
         setDays(prev =>
-            prev.map((d, i) =>
-                i === dayIndex
-                    ? {
-                        ...d,
-                        exercises: [
-                            ...d.exercises,
-                            { name: '', muscles: [''], isOptional: false, order: d.exercises.length, useBaseSelect: false },
-                        ],
-                    }
-                    : d
-            )
-        );
-    };
-
-    const updateExercise = (dayIndex: number, exIndex: number, field: keyof WorkoutExercise | 'useBaseSelect', value: any) => {
-        setDays(prev =>
-            prev.map((d, i) =>
-                i === dayIndex
-                    ? {
-                        ...d,
-                        exercises: d.exercises.map((ex, j) =>
-                            j === exIndex ? { ...ex, [field]: value } : ex
-                        ),
-                    }
-                    : d
-            )
-        );
-    };
-
-    const updateMuscle = (dayIndex: number, exIndex: number, mIndex: number, value: string) => {
-        setDays(prev =>
-            prev.map((d, i) => {
-                if (i !== dayIndex) return d;
-                const updatedExercises = d.exercises.map((ex, j) => {
-                    if (j !== exIndex) return ex;
-                    const newMuscles = [...ex.muscles];
-                    newMuscles[mIndex] = value;
-                    return { ...ex, muscles: newMuscles };
-                });
-                return { ...d, exercises: updatedExercises };
+            prev.map(d => {
+                if (d.order !== index) return d;
+                const trimmed = d.label.trim();
+                return {
+                    ...d,
+                    label: trimmed === '' ? `Default Day ${index + 1}` : trimmed,
+                    isEditing: false,
+                };
             })
         );
     };
 
-    const addMuscle = (dayIndex: number, exIndex: number) => {
-        setDays(prev =>
-            prev.map((d, i) => {
-                if (i !== dayIndex) return d;
-                const updatedExercises = d.exercises.map((ex, j) => {
-                    if (j !== exIndex) return ex;
-                    return { ...ex, muscles: [...ex.muscles, ''] };
-                });
-                return { ...d, exercises: updatedExercises };
-            })
-        );
-    };
-
-    const removeMuscle = (dayIndex: number, exIndex: number, mIndex: number) => {
-        setDays(prev =>
-            prev.map((d, i) => {
-                if (i !== dayIndex) return d;
-                const updatedExercises = d.exercises.map((ex, j) => {
-                    if (j !== exIndex) return ex;
-                    return { ...ex, muscles: ex.muscles.filter((_, idx) => idx !== mIndex) };
-                });
-                return { ...d, exercises: updatedExercises };
-            })
-        );
+    const toggleExpandDay = (index: number) => {
+        setExpandedDays(prev => {
+            const next = new Set(prev);
+            if (next.has(index)) {
+                next.delete(index);
+            } else {
+                next.add(index);
+            }
+            return next;
+        });
     };
 
     const deleteExercise = (dayIndex: number, exIndex: number) => {
         setDays(prev =>
             prev.map((d, i) =>
-                i === dayIndex
-                    ? { ...d, exercises: d.exercises.filter((_, j) => j !== exIndex) }
-                    : d
+                i === dayIndex ? { ...d, exercises: d.exercises.filter((_, j) => j !== exIndex) } : d
             )
         );
+    };
+
+    const openAddExerciseModal = (dayIndex: number) => {
+        router.push({
+            pathname: '/home/workout-plan/add-exercise',
+            params: { dayIndex: dayIndex.toString() },
+        });
+    };
+
+    const handleUpdate = async () => {
+        if (!user) return;
+
+        const hasEmptySelectedDay = days.some(day => day.selected && day.exercises.length === 0);
+        if (hasEmptySelectedDay) {
+            Alert.alert('Incomplete Plan', 'Every selected day must have at least one exercise.');
+            return;
+        }
+
+        const todayIndex = new Date().getUTCDay();
+        const stored = await AsyncStorage.getItem('activePlan');
+        if (!stored) {
+            Alert.alert('No active plan found.');
+            return;
+        }
+        const plan = JSON.parse(stored);
+
+        let existingSession = null;
+        try {
+            existingSession = await fetchWorkoutSessionByDate(user.id, new Date().toISOString().split('T')[0]);
+        } catch {
+            existingSession = null;
+        }
+
+        if (existingSession) {
+            try {
+                if (existingSession) {
+                    await deleteWorkoutSession(existingSession.id);
+                    console.log("Deleted today's session because today changed or session existed.");
+                }
+            } catch (err) {
+                console.warn('Error deleting today’s session:', err);
+            }
+        }
+
+        const payload = {
+            userId: user.id,
+            name: planName,
+            splitType: plan.splitType,
+            cycleLength: plan.cycleLength,
+            planGroupId: plan.planGroupId,
+            workoutDays: days.map(day => ({
+                label: day.selected ? day.label : 'Rest Day',
+                order: day.order,
+                exercises: day.selected ? day.exercises : [],
+            })),
+        };
+
+        try {
+            const { planId, planGroupId, version } = await createWorkoutPlan(payload);
+            await updateWorkoutCyclePlanId(user.id, planId);
+
+            const activePlanData = {
+                ...payload,
+                planId,
+                planGroupId,
+                version,
+            };
+            await AsyncStorage.setItem('activePlan', JSON.stringify(activePlanData));
+
+            Alert.alert('Success', 'Plan updated.');
+            router.replace('/home/workout-plan/workout-session');
+        } catch (err) {
+            console.error(err);
+            Alert.alert('Failed to update plan');
+        }
     };
 
     const handleDelete = async () => {
@@ -168,270 +252,129 @@ export default function WorkoutPlanInfoModal() {
         }
     };
 
-    const initializeEdit = () => {
-        if (!plan) return;
-        setPlanName(plan.name);
-        const initializedDays = plan.workoutDays.map((day: WorkoutDay, i: number): EditableWorkoutDay => ({
-            order: i,
-            selected: day.exercises.length > 0,
-            label: day.label,
-            exercises: day.exercises.map(ex => ({
-                ...ex,
-                useBaseSelect: !!ex.baseExerciseId
-            }))
-        }));
-        setDays(initializedDays);
-        setIsEditing(true);
-    };
 
-    const handleUpdate = async () => {
-        if (!user) return;
+    return (
+        <View className="flex-1 relative bg-background">
+            <ScrollView className="flex-1 px-4 py-6">
+                <View className="flex-row items-center mb-8">
+                    {isEditing ? (
+                        <TextInput
+                            ref={inputRef}
+                            value={planName}
+                            onChangeText={setPlanName}
+                            onBlur={handleSave}
+                            onSubmitEditing={handleSave}
+                            className="text-3xl font-bold mr-3"
+                        />
+                    ) : (
+                        <Text className="text-3xl font-bold mr-3">{planName}</Text>
+                    )}
 
-        const hasEmptySelectedDay = days.some(day => day.selected && day.exercises.length === 0);
-        if (hasEmptySelectedDay) {
-            Alert.alert("Incomplete Plan", "Every selected day must have at least one exercise.");
-            return;
-        }
-
-        const todayIndex = new Date().getUTCDay();
-        const oldToday = plan.workoutDays.find((d: WorkoutDay) => d.order === todayIndex);
-        const newToday = days.find((d: EditableWorkoutDay) => d.order === todayIndex);
-        const todayChanged = JSON.stringify(oldToday) !== JSON.stringify(newToday);
-
-        let existingSession = null;
-        try {
-            existingSession = await fetchWorkoutSessionByDate(user.id, new Date().toISOString().split('T')[0]);
-        } catch (err) {
-            existingSession = null;
-        }
-
-        const promptAndUpdate = async () => {
-            const payload = {
-                userId: user.id,
-                name: planName,
-                splitType: plan.splitType,
-                cycleLength: plan.cycleLength,
-                planGroupId: plan.planGroupId,
-                workoutDays: days.map(day => ({
-                    label: day.selected ? day.label : 'Rest Day',
-                    order: day.order,
-                    exercises: day.selected ? day.exercises.map(ex => ({
-                        name: ex.name,
-                        muscles: ex.muscles,
-                        isOptional: ex.isOptional,
-                        order: ex.order,
-                        baseExerciseId: ex.baseExerciseId ?? undefined
-                    })) : [],
-                })),
-            };
-
-            try {
-                const { planId, planGroupId, version } = await createWorkoutPlan(payload);
-
-                await updateWorkoutCyclePlanId(user.id, planId);
-
-                const activePlanData = {
-                    ...payload,
-                    planId,
-                    planGroupId,
-                    version,
-                };
-                await AsyncStorage.setItem('activePlan', JSON.stringify(activePlanData));
-                console.log('Plan updated successfully:', activePlanData);
-                router.dismiss();
-                router.replace('/home/workout-plan/workout-session');
-            } catch (err) {
-                console.error(err);
-                Alert.alert('Failed to update plan');
-            }
-        };
-
-        if (existingSession && todayChanged) {
-            Alert.alert(
-                "Today's workout changed",
-                "Would you like to keep the current workout session or replace it with the new one?",
-                [
-                    {
-                        text: "Keep Current",
-                        style: "cancel",
-                        onPress: () => promptAndUpdate(),
-                    },
-                    {
-                        text: "Replace",
-                        style: "destructive",
-                        onPress: async () => {
-                            try {
-                                await deleteWorkoutSession(existingSession.id);
-                            } catch (err) {
-                                console.error('Error deleting session:', err);
-                            }
-                            promptAndUpdate();
-                        },
-                    },
-                ]
-            );
-        } else {
-            promptAndUpdate();
-        }
-    };
-
-    if (loading || !plan) {
-        return (
-            <View className="flex-1 justify-center items-center bg-white">
-                <Text>Loading plan...</Text>
-            </View>
-        );
-    }
-
-    if (isEditing) {
-        return (
-            <ScrollView className="flex-1 bg-white px-4 py-6">
-                <Text className="text-2xl font-bold text-center mb-4">Edit Workout Plan</Text>
-                <Text className="text-sm font-semibold mb-1">Plan Name</Text>
-                <TextInput
-                    className="border border-gray-300 rounded px-3 py-2 mb-4"
-                    placeholder="Plan Name"
-                    value={planName}
-                    onChangeText={setPlanName}
-                />
-
-                <View className="flex-row flex-wrap justify-between mb-4">
-                    {weekdays.map((w, i) => (
-                        <Pressable
-                            key={i}
-                            onPress={() => toggleDay(i)}
-                            className={`flex-1 m-1 py-2 rounded-full border items-center ${days[i]?.selected ? 'bg-blue-600 border-blue-600' : 'border-gray-300'
-                                }`}
-                        >
-                            <Text className={days[i]?.selected ? 'text-white' : 'text-black'}>{w}</Text>
+                    {isEditing ? (
+                        <Pressable onPress={handleSave}>
+                            <Text className="underline text-primary text-xl">done</Text>
                         </Pressable>
-                    ))}
+                    ) : (
+                        <Pressable onPress={handleRename}>
+                            <Text className="underline text-primary text-xl">rename</Text>
+                        </Pressable>
+                    )}
+                </View>
+
+                <View className="mb-8 border-b border-gray">
+                    <Text className="text-lg font-semibold mb-2">Select Workout Days</Text>
+                    <View className="flex-row flex-wrap mb-4">
+                        {weekdays.map((w, i) => (
+                            <Pressable
+                                key={i}
+                                onPress={() => toggleDay(i)}
+                                className={`mr-4 h-9 w-9 rounded-lg bg-gray-2 items-center justify-center ${days[i].selected ? 'bg-primary' : ''}`}
+                            >
+                                <Text className="text-black">{w}</Text>
+                            </Pressable>
+                        ))}
+                    </View>
                 </View>
 
                 {days.map((day, i) =>
                     day.selected ? (
-                        <View key={i} className="mb-6 border-b border-gray-200 pb-4">
-                            <Text className="text-lg font-semibold mb-1">{fullDayNames[i]}</Text>
-                            <TextInput
-                                className="border border-gray-300 rounded px-3 py-2 mb-2"
-                                value={day.label}
-                                onChangeText={text => updateLabel(i, text)}
-                                placeholder="Day label"
-                            />
-                            {day.exercises.map((ex, j) => (
-                                <View key={j} className="mb-3 ml-2">
-                                    <View className="flex-row mb-2 items-center">
-                                        <Text className="mr-2">Use Base:</Text>
-                                        <Pressable
-                                            className={`px-3 py-1 rounded ${ex.useBaseSelect ? 'bg-green-600' : 'bg-gray-400'
-                                                }`}
-                                            onPress={() => {
-                                                const newUseBaseSelect = !ex.useBaseSelect;
-                                                updateExercise(i, j, 'useBaseSelect', newUseBaseSelect);
-                                                if (!newUseBaseSelect) {
-                                                    updateExercise(i, j, 'name', '');
-                                                    updateExercise(i, j, 'muscles', []);
-                                                    updateExercise(i, j, 'baseExerciseId', null);
-                                                }
-                                            }}
-                                        >
-                                            <Text className="text-white">
-                                                {ex.useBaseSelect ? 'ON' : 'OFF'}
-                                            </Text>
-                                        </Pressable>
-                                    </View>
-
-                                    {ex.useBaseSelect ? (
-                                        <View className="border border-gray-300 rounded mb-2">
-                                            <Picker
-                                                selectedValue={ex.baseExerciseId ?? ''}
-                                                onValueChange={baseId => {
-                                                    const selected = baseExercises.find(b => b.id === baseId);
-                                                    if (selected) {
-                                                        updateExercise(i, j, 'baseExerciseId', selected.id);
-                                                        updateExercise(i, j, 'name', selected.name);
-                                                        updateExercise(i, j, 'muscles', selected.muscles);
-                                                    }
-                                                }}
-                                            >
-                                                <Picker.Item label="Select Exercise..." value="" />
-                                                {baseExercises.map(base => (
-                                                    <Picker.Item
-                                                        key={base.id}
-                                                        label={base.name}
-                                                        value={base.id}
-                                                    />
-                                                ))}
-                                            </Picker>
-                                        </View>
-                                    ) : (
-                                        <TextInput
-                                            className="border border-gray-300 rounded px-3 py-1 mb-1"
-                                            placeholder="Exercise name"
-                                            value={ex.name}
-                                            onChangeText={text =>
-                                                updateExercise(i, j, 'name', text)
-                                            }
+                        <View key={i} className="mb-6 pb-4">
+                            <View className="flex-row items-center mb-2">
+                                <View className="flex-row items-center">
+                                    <Pressable onPress={() => toggleExpandDay(i)} className="px-2 py-1">
+                                        <FontAwesomeIcon
+                                            icon={['fas', expandedDays.has(i) ? 'chevron-up' : 'chevron-down']}
+                                            size={18}
+                                            color="#000"
                                         />
-                                    )}
-
-                                    <TextInput
-                                        className="border border-gray-300 rounded px-3 py-1 mb-1"
-                                        placeholder="Order"
-                                        keyboardType="numeric"
-                                        value={String(ex.order)}
-                                        onChangeText={text =>
-                                            updateExercise(i, j, 'order', parseInt(text))
-                                        }
-                                    />
-
-                                    {ex.muscles.map((muscle, mIndex) => (
-                                        <View key={mIndex} className="flex-row items-center mb-1">
+                                    </Pressable>
+                                    <View className="flex-shrink max-w-[70%] mr-3">
+                                        {day.isEditing ? (
                                             <TextInput
-                                                className="flex-1 border border-gray-300 rounded px-3 py-1 mr-2"
-                                                placeholder={`Muscle ${mIndex + 1}`}
-                                                value={muscle}
-                                                onChangeText={text =>
-                                                    updateMuscle(i, j, mIndex, text)
-                                                }
+                                                ref={el => {
+                                                    inputRefs.current[i] = el;
+                                                }}
+                                                value={day.label}
+                                                onChangeText={text => updateLabel(i, text)}
+                                                onBlur={() => saveLabel(i)}
+                                                onSubmitEditing={() => saveLabel(i)}
+                                                multiline
+                                                className="font-bold text-[18px] leading-[22px]"
                                             />
-                                            <Pressable
-                                                onPress={() => removeMuscle(i, j, mIndex)}
-                                                className="w-16 h-8 bg-red-500 rounded justify-center items-center"
+                                        ) : (
+                                            <Text
+                                                className="font-bold text-[18px] leading-[22px]"
+                                                numberOfLines={1}
+                                                ellipsizeMode="tail"
                                             >
-                                                <Text className="text-white text-base font-bold">X</Text>
+                                                {day.label}
+                                            </Text>
+                                        )}
+                                    </View>
+                                    {day.isEditing ? (
+                                        <Pressable onPress={() => saveLabel(i)}>
+                                            <Text className="underline text-primary text-lg">done</Text>
+                                        </Pressable>
+                                    ) : (
+                                        <Pressable onPress={() => toggleEditLabel(i, true)}>
+                                            <Text className="underline text-primary text-lg">rename</Text>
+                                        </Pressable>
+                                    )}
+                                </View>
+                            </View>
+
+                            {expandedDays.has(i) && (
+                                <>
+                                    {day.exercises.map((ex, j) => (
+                                        <View key={j} className="flex-row items-center justify-between mb-3 ml-2">
+                                            <View>
+                                                <Text className="text-base font-semibold">{ex.name}</Text>
+                                                <Text className="text-gray-500 text-sm">{ex.muscles.join(', ')}</Text>
+                                            </View>
+                                            <Pressable onPress={() => deleteExercise(i, j)}>
+                                                <FontAwesomeIcon icon={['far', 'circle-xmark']} size={20} color="#555" />
                                             </Pressable>
                                         </View>
                                     ))}
 
                                     <Pressable
-                                        className="bg-blue-600 px-2 py-1 rounded self-start mb-2"
-                                        onPress={() => addMuscle(i, j)}
+                                        className="bg-primary rounded-xl px-4 py-2 justify-center items-center w-1/2 self-center my-4"
+                                        onPress={() => openAddExerciseModal(i)}
                                     >
-                                        <Text className="text-white text-xs">+ Add Muscle</Text>
+                                        <Text className="text-black text-center">Add Exercise</Text>
                                     </Pressable>
-
-                                    <Pressable
-                                        className="bg-red-500 rounded px-2 py-1 self-start"
-                                        onPress={() => deleteExercise(i, j)}
-                                    >
-                                        <Text className="text-white text-xs">Delete Exercise</Text>
-                                    </Pressable>
-                                </View>
-                            ))}
-
-                            <Pressable
-                                className="bg-green-600 rounded px-4 py-2"
-                                onPress={() => addExercise(i)}
-                            >
-                                <Text className="text-white text-sm">+ Add Exercise</Text>
-                            </Pressable>
+                                </>
+                            )}
                         </View>
                     ) : null
                 )}
 
-                <Pressable className="mt-6 bg-blue-600 px-6 py-3 rounded" onPress={handleUpdate}>
-                    <Text className="text-white text-center font-semibold text-lg">Update Plan</Text>
+                <View className="mb-32"></View>
+            </ScrollView>
+
+            <View className="absolute w-full px-4 py-6 bottom-10">
+                <Pressable className="bg-primary rounded py-3" onPress={handleUpdate}>
+                    <Text className="text-black text-center font-bold text-xl">Save Updates</Text>
                 </Pressable>
 
                 <Pressable
@@ -441,49 +384,7 @@ export default function WorkoutPlanInfoModal() {
                     <Text className="text-white text-center font-semibold">Delete Workout Plan</Text>
                 </Pressable>
 
-            </ScrollView>
-        );
-    }
-
-
-    return (
-        <ScrollView className="flex-1 bg-white p-4">
-            <Text className="text-2xl font-bold mb-1">{plan.name}</Text>
-            <Text className="text-xs text-gray-500 mb-3">
-                Version: {plan.planGroupId}.{plan.version}
-            </Text>
-            <Text className="text-sm text-gray-600 mb-4">
-                Split Type: {plan.splitType} | Cycle Length: {plan.cycleLength} days
-            </Text>
-
-            {plan.workoutDays.map((day: any) => (
-                <View key={day.order} className="mb-5">
-                    <Text className="text-lg font-semibold">
-                        {fullDayNames[day.order]} – {day.label}
-                    </Text>
-                    {day.exercises.map((exercise: any, index: number) => (
-                        <View key={index} className="ml-2 mt-1">
-                            <Text className="text-base">• {exercise.name}</Text>
-                            <Text className="text-xs text-gray-500">
-                                Muscles: {exercise.muscles.join(', ')}
-                                {exercise.isOptional ? ' (Optional)' : ''}
-                            </Text>
-                            {exercise.baseExerciseId && (
-                                <Text className="text-[10px] text-gray-400 italic">
-                                    Base Exercise ID: {exercise.baseExerciseId}
-                                </Text>
-                            )}
-                        </View>
-                    ))}
-                </View>
-            ))}
-
-            <Pressable
-                className="mt-4 bg-gray-700 px-4 py-3 rounded"
-                onPress={initializeEdit}
-            >
-                <Text className="text-black text-center font-semibold">Edit Plan</Text>
-            </Pressable>
-        </ScrollView>
+            </View>
+        </View>
     );
 }
