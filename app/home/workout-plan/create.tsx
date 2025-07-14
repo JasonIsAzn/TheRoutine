@@ -222,7 +222,7 @@ export default function CreateWorkoutPlanScreen() {
                 {days.map((day, i) =>
                     day.selected && (
                         <View key={i} className="mb-6 pb-4">
-                            <View className="flex-row items-center mb-2 justify-between">
+                            <View className="flex-row items-center mb-2">
                                 <View className="flex-row items-center">
 
                                     <Pressable onPress={() => toggleExpandDay(i)} className='px-2 py-1'>
@@ -232,25 +232,27 @@ export default function CreateWorkoutPlanScreen() {
                                             color="#000"
                                         />
                                     </Pressable>
-                                    {day.isEditing ? (
-                                        <TextInput
-                                            ref={el => { inputRefs.current[i] = el; }}
-                                            value={day.label}
-                                            onChangeText={text => updateLabel(i, text)}
-                                            onBlur={() => saveLabel(i)}
-                                            onSubmitEditing={() => saveLabel(i)}
-                                            className="font-bold mr-3"
-                                            style={{ fontSize: 18, lineHeight: 22 }}
-                                        />
-                                    ) : (
-                                        <Text
-                                            className="font-bold mr-3"
-                                            style={{ fontSize: 18, lineHeight: 22, includeFontPadding: false }}
-                                        >
-                                            {day.label}
-                                        </Text>
-                                    )}
-
+                                    <View className="flex-shrink max-w-[70%] mr-3">
+                                        {day.isEditing ? (
+                                            <TextInput
+                                                ref={el => { inputRefs.current[i] = el; }}
+                                                value={day.label}
+                                                onChangeText={text => updateLabel(i, text)}
+                                                onBlur={() => saveLabel(i)}
+                                                onSubmitEditing={() => saveLabel(i)}
+                                                multiline
+                                                className="font-bold text-[18px] leading-[22px]"
+                                            />
+                                        ) : (
+                                            <Text
+                                                className="font-bold text-[18px] leading-[22px]"
+                                                numberOfLines={1}
+                                                ellipsizeMode="tail"
+                                            >
+                                                {day.label}
+                                            </Text>
+                                        )}
+                                    </View>
                                     {day.isEditing ? (
                                         <Pressable onPress={() => saveLabel(i)}>
                                             <Text className="underline text-primary text-lg">done</Text>
