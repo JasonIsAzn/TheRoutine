@@ -60,7 +60,8 @@ export default function CreateWorkoutPlanScreen() {
 
         setExpandedDays(prev => {
             const updated = new Set(prev);
-            if (newSelected) {
+            const isSelected = days[index].selected;
+            if (!isSelected) {
                 updated.add(index);
             } else {
                 updated.delete(index);
