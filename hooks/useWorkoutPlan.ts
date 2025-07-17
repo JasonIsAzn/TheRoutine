@@ -8,28 +8,30 @@ export const useWorkoutPlan = () => {
     const [plan, setPlan] = useState<any | null>(null);
     const [loading, setLoading] = useState(true);
 
-    useEffect(() => {
-        const loadPlan = async () => {
-            const stored = await AsyncStorage.getItem('activePlan');
-            if (stored) {
-                setPlan(JSON.parse(stored));
-                setLoading(false);
-                return;
-            }
-
-            if (user) {
-                try {
-                    const data = await fetchActiveWorkoutPlan(user.id);
-                    setPlan(data);
-                    await AsyncStorage.setItem('activePlan', JSON.stringify(data));
-                } catch (err) {
-                    console.log('No active plan found:', err);
-                }
-            }
+    const loadPlan = async () => {
+        setLoading(true);
+        const stored = await AsyncStorage.getItem('activePlan');
+        if (stored) {
+            setPlan(JSON.parse(stored));
             setLoading(false);
-        };
+            return;
+        }
+
+        if (user) {
+            try {
+                const data = await fetchActiveWorkoutPlan(user.id);
+                setPlan(data);
+                await AsyncStorage.setItem('activePlan', JSON.stringify(data));
+            } catch (err) {
+                console.log('No active plan found:', err);
+            }
+        }
+        setLoading(false);
+    };
+
+    useEffect(() => {
         loadPlan();
     }, [user]);
 
-    return { plan, loading };
+    return { plan, loading, reloadPlan: loadPlan };
 };
