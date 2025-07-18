@@ -12,6 +12,8 @@ import {
     faChevronDown,
     faChevronUp,
     faBars,
+    faGear,
+    faCalendar,
 } from '@fortawesome/free-solid-svg-icons';
 
 import { faCircleXmark as farCircleXmark } from '@fortawesome/free-regular-svg-icons';
@@ -28,6 +30,7 @@ library.add(
     faChevronDown,
     faChevronUp,
     faBars,
-
+    faGear,
+    faCalendar,
     farCircleXmark
 );
