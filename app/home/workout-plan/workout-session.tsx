@@ -9,7 +9,7 @@ import { fetchBaseExercises } from '../../../api/baseExercise';
 import { Picker } from '@react-native-picker/picker';
 import { BaseExercise } from 'types/workout';
 import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
-import { useFocusEffect } from 'expo-router';
+import { useFocusEffect, useRouter } from 'expo-router';
 
 
 interface ExerciseDraft {
@@ -20,17 +20,10 @@ interface ExerciseDraft {
     order?: number;
 }
 
-interface SessionExercise {
-    id: number;
-    name: string;
-    order: number;
-    isDeleted: boolean;
-}
-
-
 export default function WorkoutSessionScreen() {
     const { user } = useAuth();
     const { plan, loading: planLoading } = useWorkoutPlan();
+    const router = useRouter();
 
     const [cycle, setCycle] = useState<any>(null);
     const [loadingCycle, setLoadingCycle] = useState(true);
@@ -193,25 +186,19 @@ export default function WorkoutSessionScreen() {
         setExercises(updated);
     };
 
-    const handleSoftDelete = async (exerciseId: number) => {
-        await softDeleteExercise(exerciseId);
-        const updated = await fetchSessionExercises(session.id);
-        setExercises(updated);
-    };
 
     const handleSwap = async (exercise: any) => {
         await softDeleteExercise(exercise.id);
-        setExercises(await fetchSessionExercises(session.id));
+        const updated = await fetchSessionExercises(session.id);
+        setExercises(updated);
 
-        setNewExerciseDraft({
-            name: exercise.name,
-            muscles: exercise.muscles || [''],
-            useBaseSelect: !!exercise.baseExerciseId,
-            baseExerciseId: exercise.baseExerciseId ?? null,
-            order: exercise.order,
+        router.push({
+            pathname: '/home/workout-plan/add-exercise-session',
+            params: {
+                sessionId: session.id.toString(),
+                order: exercise.order.toString()
+            },
         });
-
-        setShowAddForm(true);
     };
 
     if (loadingSession || !session) {
@@ -243,80 +230,103 @@ export default function WorkoutSessionScreen() {
                         </View>
 
                     ) : (
-                        exercises.map((exercise) => (
-                            <View key={exercise.id} className="flex-row items-center mb-8 ">
-                                <View className='flex-row items-center'>
-                                    <Pressable
-                                        onPress={() =>
-                                            !exercise.isSkipped
-                                                ? handleToggleComplete(exercise.id)
-                                                : handleToggleSkip(exercise.id)
-                                        }
-                                        className="flex-1 flex-row items-center gap-2"
-                                    >
-                                        <View
-                                            className={`items-center justify-center h-10 w-10 rounded-full ${exercise.isCompleted
-                                                ? 'bg-primary'
-                                                : 'bg-background border border-gray'
-                                                }`}
+                        <View>
+                            {exercises.map((exercise) => (
+                                <View key={exercise.id} className="flex-row items-center mb-8 ">
+                                    <View className='flex-row items-center'>
+                                        <Pressable
+                                            onPress={() =>
+                                                !exercise.isSkipped
+                                                    ? handleToggleComplete(exercise.id)
+                                                    : handleToggleSkip(exercise.id)
+                                            }
+                                            className="flex-1 flex-row items-center gap-2"
                                         >
-                                            {exercise.isCompleted && (
-                                                <FontAwesomeIcon icon={['fas', 'check']} size={18} color="#fff" />
-                                            )}
-                                            {exercise.isSkipped && (
-                                                <FontAwesomeIcon icon={['fas', 'ban']} size={18} color="#808080" />
-                                            )}
-                                        </View>
-
-                                        <View>
-                                            <Text
-                                                className={`text-lg font-semibold ${exercise.isSkipped && 'line-through'
+                                            <View
+                                                className={`items-center justify-center h-10 w-10 rounded-full ${exercise.isCompleted
+                                                    ? 'bg-primary'
+                                                    : 'bg-background border border-gray'
                                                     }`}
                                             >
-                                                {exercise.name}
-                                            </Text>
-                                            <Text>{"60lbs"}</Text>
-                                        </View>
-                                    </Pressable>
+                                                {exercise.isCompleted && (
+                                                    <FontAwesomeIcon icon={['fas', 'check']} size={18} color="#fff" />
+                                                )}
+                                                {exercise.isSkipped && (
+                                                    <FontAwesomeIcon icon={['fas', 'ban']} size={18} color="#808080" />
+                                                )}
+                                            </View>
 
-                                    {!(exercise.isSkipped || exercise.isCompleted) && (
-                                        <View className="flex-row gap-5">
-                                            <Pressable onPress={() => handleSwap(exercise)}>
-                                                <FontAwesomeIcon
-                                                    icon={['fas', 'right-left']}
-                                                    size={18}
-                                                    color="#808080"
-                                                />
-                                            </Pressable>
-                                            <Pressable onPress={() => handleToggleSkip(exercise.id)}>
-                                                <FontAwesomeIcon icon={['fas', 'ban']} size={18} color="#808080" />
-                                            </Pressable>
-                                        </View>
-                                    )}
+                                            <View>
+                                                <Text
+                                                    className={`text-lg font-semibold ${exercise.isSkipped && 'line-through'
+                                                        }`}
+                                                >
+                                                    {exercise.name}
+                                                </Text>
+                                                <Text>{"60lbs"}</Text>
+                                            </View>
+                                        </Pressable>
+
+                                        {!(exercise.isSkipped || exercise.isCompleted) && (
+                                            <View className="flex-row gap-5">
+                                                <Pressable onPress={() => handleSwap(exercise)}>
+                                                    <FontAwesomeIcon
+                                                        icon={['fas', 'right-left']}
+                                                        size={18}
+                                                        color="#808080"
+                                                    />
+                                                </Pressable>
+                                                <Pressable onPress={() => handleToggleSkip(exercise.id)}>
+                                                    <FontAwesomeIcon icon={['fas', 'ban']} size={18} color="#808080" />
+                                                </Pressable>
+                                            </View>
+                                        )}
+                                    </View>
                                 </View>
-                            </View>
-                        ))
+                            ))}
+
+                            <Pressable
+                                className="bg-primary rounded-xl px-4 py-2 justify-center items-center w-1/2 self-center my-4"
+                                onPress={() =>
+                                    router.push({
+                                        pathname: '/home/workout-plan/add-exercise-session',
+                                        params: {
+                                            sessionId: session.id.toString(),
+                                            order: (Math.max(-1, ...exercises.map((e) => e.order)) + 1).toString(),
+                                        },
+                                    })
+                                }
+                            >
+                                <Text className="text-black text-center">Add Exercise</Text>
+                            </Pressable>
+                        </View>
                     )}
                 </View>
 
-                {remainingCycleDays.map((day: { label: string; weekday: string }, idx: number) => (
-                    <View key={`remain-${idx}`} className="mb-2 flex-row items-center ">
-                        <Text className="text-lg text-gray w-[10%]">{day.weekday}</Text>
-                        <Text className="text-lg font-bold text-gray">{day.label}</Text>
-                    </View>
-                ))}
+                {
+                    remainingCycleDays.map((day: { label: string; weekday: string }, idx: number) => (
+                        <View key={`remain-${idx}`} className="mb-2 flex-row items-center ">
+                            <Text className="text-lg text-gray w-[10%]">{day.weekday}</Text>
+                            <Text className="text-lg font-bold text-gray">{day.label}</Text>
+                        </View>
+                    ))
+                }
 
-                {needed > 0 && (
-                    <Text className="text-center text-gray font-bold my-4">work cycle complete</Text>
-                )}
+                {
+                    needed > 0 && (
+                        <Text className="text-center text-gray font-bold my-4">work cycle complete</Text>
+                    )
+                }
 
-                {upcomingPlanDays.map((day, idx) => (
-                    <View key={`plan-${idx}`} className="mb-6 flex-row items-center ">
-                        <Text className="text-lg text-gray w-[10%]">{day.weekday}</Text>
-                        <Text className="text-lg font-bold text-gray">{day.label}</Text>
-                    </View>
-                ))}
-            </ScrollView>
+                {
+                    upcomingPlanDays.map((day, idx) => (
+                        <View key={`plan-${idx}`} className="mb-6 flex-row items-center ">
+                            <Text className="text-lg text-gray w-[10%]">{day.weekday}</Text>
+                            <Text className="text-lg font-bold text-gray">{day.label}</Text>
+                        </View>
+                    ))
+                }
+            </ScrollView >
 
 
             {!session.isCompleted && (
@@ -336,8 +346,9 @@ export default function WorkoutSessionScreen() {
                     <Text className='text-2xl font-bold'>Done</Text>
 
                 </Pressable>
-            )}
-        </View>
+            )
+            }
+        </View >
     );
 }
 

@@ -121,6 +121,14 @@ export default function WorkoutPlanLayout() {
                     presentation: 'modal',
                 }}
             />
+
+            <Stack.Screen
+                name="add-exercise-session"
+                options={{
+                    headerShown: false,
+                    presentation: 'modal',
+                }}
+            />
         </Stack>
     );
 }
