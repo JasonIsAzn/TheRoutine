@@ -161,7 +161,7 @@ export default function WorkoutSessionScreen() {
     });
 
     // Build weekday info
-    const weekdayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+    const weekdayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 
     const fullPlanDays = Array.from({ length: 7 }, (_, i) => ({
         order: i,
@@ -226,53 +226,118 @@ export default function WorkoutSessionScreen() {
 
 
     return (
-        <ScrollView className="flex-1 bg-background px-4 pt-2">
-            <View className="mb-8">
-                <Text className="text-2xl font-bold mb-10">{session.label}</Text>
+        <View className='flex-1 relative'>
+            <ScrollView className="flex-1 bg-background px-4 pt-2">
 
-                {exercises.length === 0 ? (
-                    <Text className="text-center text-gray-500 italic">Rest Day</Text>
-                ) : (
-                    exercises.map((exercise) => (
-                        <View key={exercise.id} className="flex-row items-center mb-8 ">
-                            <View className='flex-row items-center'>
-                                {/* Check + Name */}
-                                <Pressable
-                                    onPress={() => !exercise.isSkipped ? handleToggleComplete(exercise.id) : handleToggleSkip(exercise.id)}
-                                    className="flex-1 flex-row items-center gap-2"
-                                >
-                                    <View className={`items-center justify-center h-10 w-10 rounded-full ${exercise.isCompleted ? 'bg-primary' : 'bg-background border border-gray'}`}>
-                                        {exercise.isCompleted && (
-                                            <FontAwesomeIcon icon={['fas', 'check']} size={18} color="#fff" />
-                                        )}
-                                        {exercise.isSkipped && (
-                                            <FontAwesomeIcon icon={['fas', 'x']} size={18} color="#808080" />
-                                        )}
-                                    </View>
+                <View className="mb-8 border-b border-[#8080800/70]">
+                    <Text className="text-2xl font-bold mb-10">{session.label}</Text>
 
-                                    <View>
-                                        <Text className={`text-lg font-semibold ${exercise.isSkipped && "line-through"} `}>{exercise.name}</Text>
-                                        <Text>{"60lbs"}</Text>
-                                    </View>
-                                </Pressable>
-
-                                {/* Action Items */}
-                                {!(exercise.isSkipped || exercise.isCompleted) && (
-                                    <View className='flex-row gap-5'>
-                                        <Pressable onPress={() => handleSwap(exercise)}>
-                                            <FontAwesomeIcon icon={['fas', 'right-left']} size={18} color="#808080" />
-                                        </Pressable>
-                                        <Pressable onPress={() => handleToggleSkip(exercise.id)}>
-                                            <FontAwesomeIcon icon={['fas', 'ban']} size={18} color="#808080" />
-                                        </Pressable>
-                                    </View>
-                                )}
-                            </View>
+                    {exercises.length === 0 ? (
+                        <View className="items-center justify-center h-32">
+                            <Text className="text-xl font-semibold text-center text-gray">no intense workout</Text>
+                            <Text className="text-xl font-semibold text-center text-gray">light cardio only or abs</Text>
                         </View>
-                    ))
+                    ) : session.isCompleted ? (
+                        <View className="items-center justify-center h-32">
+                            <Text className="text-xl font-semibold text-center text-gray">Workout Session Completed</Text>
+                        </View>
+
+                    ) : (
+                        exercises.map((exercise) => (
+                            <View key={exercise.id} className="flex-row items-center mb-8 ">
+                                <View className='flex-row items-center'>
+                                    <Pressable
+                                        onPress={() =>
+                                            !exercise.isSkipped
+                                                ? handleToggleComplete(exercise.id)
+                                                : handleToggleSkip(exercise.id)
+                                        }
+                                        className="flex-1 flex-row items-center gap-2"
+                                    >
+                                        <View
+                                            className={`items-center justify-center h-10 w-10 rounded-full ${exercise.isCompleted
+                                                ? 'bg-primary'
+                                                : 'bg-background border border-gray'
+                                                }`}
+                                        >
+                                            {exercise.isCompleted && (
+                                                <FontAwesomeIcon icon={['fas', 'check']} size={18} color="#fff" />
+                                            )}
+                                            {exercise.isSkipped && (
+                                                <FontAwesomeIcon icon={['fas', 'ban']} size={18} color="#808080" />
+                                            )}
+                                        </View>
+
+                                        <View>
+                                            <Text
+                                                className={`text-lg font-semibold ${exercise.isSkipped && 'line-through'
+                                                    }`}
+                                            >
+                                                {exercise.name}
+                                            </Text>
+                                            <Text>{"60lbs"}</Text>
+                                        </View>
+                                    </Pressable>
+
+                                    {!(exercise.isSkipped || exercise.isCompleted) && (
+                                        <View className="flex-row gap-5">
+                                            <Pressable onPress={() => handleSwap(exercise)}>
+                                                <FontAwesomeIcon
+                                                    icon={['fas', 'right-left']}
+                                                    size={18}
+                                                    color="#808080"
+                                                />
+                                            </Pressable>
+                                            <Pressable onPress={() => handleToggleSkip(exercise.id)}>
+                                                <FontAwesomeIcon icon={['fas', 'ban']} size={18} color="#808080" />
+                                            </Pressable>
+                                        </View>
+                                    )}
+                                </View>
+                            </View>
+                        ))
+                    )}
+                </View>
+
+                {remainingCycleDays.map((day: { label: string; weekday: string }, idx: number) => (
+                    <View key={`remain-${idx}`} className="mb-2 flex-row items-center ">
+                        <Text className="text-lg text-gray w-[10%]">{day.weekday}</Text>
+                        <Text className="text-lg font-bold text-gray">{day.label}</Text>
+                    </View>
+                ))}
+
+                {needed > 0 && (
+                    <Text className="text-center text-gray font-bold my-4">work cycle complete</Text>
                 )}
-            </View>
-        </ScrollView >
+
+                {upcomingPlanDays.map((day, idx) => (
+                    <View key={`plan-${idx}`} className="mb-6 flex-row items-center ">
+                        <Text className="text-lg text-gray w-[10%]">{day.weekday}</Text>
+                        <Text className="text-lg font-bold text-gray">{day.label}</Text>
+                    </View>
+                ))}
+            </ScrollView>
+
+
+            {!session.isCompleted && (
+                <Pressable
+                    className='bg-primary absolute bottom-0 right-0 m-8 justify-center items-center rounded-2xl px-8 py-3'
+                    onPress={async () => {
+                        try {
+                            await markWorkoutSessionAsCompleted(session.id);
+                            Alert.alert("Session marked as complete.");
+                            setSession((prev: any) => ({ ...prev, isCompleted: true }));
+                        } catch (err) {
+                            console.error(err);
+                            Alert.alert("Failed to mark session as complete.");
+                        }
+                    }}
+                >
+                    <Text className='text-2xl font-bold'>Done</Text>
+
+                </Pressable>
+            )}
+        </View>
     );
 }
 
@@ -285,26 +350,6 @@ export default function WorkoutSessionScreen() {
 //             </Pressable>
 
 
-
-// {session.isCompleted && (
-//     <Text className="text-green-600 text-center font-semibold mb-2">✅ Session Completed</Text>
-// )}
-
-// <Pressable
-//     className="mt-4 bg-green-600 py-2 px-4 rounded"
-//     onPress={async () => {
-//         try {
-//             await markWorkoutSessionAsCompleted(session.id);
-//             Alert.alert("Session marked as complete.");
-//             setSession((prev: any) => ({ ...prev, isCompleted: true }));
-//         } catch (err) {
-//             console.error(err);
-//             Alert.alert("Failed to mark session as complete.");
-//         }
-//     }}
-// >
-//     <Text className="text-white text-center font-semibold">Mark Session Complete</Text>
-// </Pressable>
 
 
 // {showAddForm && (
@@ -440,23 +485,3 @@ export default function WorkoutSessionScreen() {
 
 //     </View>
 // )}
-// {/* Upcoming Days */}
-// <Text className="text-xl font-bold mb-4 text-center">Upcoming Days</Text>
-
-// {remainingCycleDays.map((day: { label: string; weekday: string }, idx: number) => (
-//     <View key={`remain-${idx}`} className="mb-4">
-//         <Text className="text-sm text-gray-500">{day.weekday}</Text>
-//         <Text className="text-base font-semibold text-black">{day.label}</Text>
-//     </View>
-// ))}
-
-// {needed > 0 && (
-//     <Text className="text-center italic text-gray-400 my-2">-- work cycle complete --</Text>
-// )}
-
-// {upcomingPlanDays.map((day, idx) => (
-//     <View key={`plan-${idx}`} className="mb-4">
-//         <Text className="text-sm text-gray-500">{day.weekday}</Text>
-//         <Text className="text-base font-semibold text-black">{day.label}</Text>
-//     </View>
-// ))}

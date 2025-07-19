@@ -5,7 +5,6 @@ import { Pressable, Text, View } from 'react-native';
 export default function WorkoutPlanLayout() {
     const router = useRouter();
     const pathname = usePathname();
-    console.log('WorkoutPlanLayout pathname:', pathname);
 
     return (
         <Stack>
