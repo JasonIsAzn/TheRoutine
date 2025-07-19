@@ -243,16 +243,16 @@ export default function WorkoutSessionScreen() {
                                             className="flex-1 flex-row items-center gap-2"
                                         >
                                             <View
-                                                className={`items-center justify-center h-10 w-10 rounded-full ${exercise.isCompleted
+                                                className={`items-center justify-center h-7 w-7 rounded-full ${exercise.isCompleted
                                                     ? 'bg-primary'
-                                                    : 'bg-background border border-gray'
+                                                    : 'bg-background border-2 border-gray/40'
                                                     }`}
                                             >
                                                 {exercise.isCompleted && (
-                                                    <FontAwesomeIcon icon={['fas', 'check']} size={18} color="#fff" />
+                                                    <FontAwesomeIcon icon={['fas', 'check']} size={16} color="#fff" />
                                                 )}
                                                 {exercise.isSkipped && (
-                                                    <FontAwesomeIcon icon={['fas', 'ban']} size={18} color="#808080" />
+                                                    <FontAwesomeIcon icon={['fas', 'ban']} size={16} color="#808080" />
                                                 )}
                                             </View>
 
@@ -272,12 +272,12 @@ export default function WorkoutSessionScreen() {
                                                 <Pressable onPress={() => handleSwap(exercise)}>
                                                     <FontAwesomeIcon
                                                         icon={['fas', 'right-left']}
-                                                        size={18}
+                                                        size={16}
                                                         color="#808080"
                                                     />
                                                 </Pressable>
                                                 <Pressable onPress={() => handleToggleSkip(exercise.id)}>
-                                                    <FontAwesomeIcon icon={['fas', 'ban']} size={18} color="#808080" />
+                                                    <FontAwesomeIcon icon={['fas', 'ban']} size={16} color="#808080" />
                                                 </Pressable>
                                             </View>
                                         )}
@@ -326,7 +326,9 @@ export default function WorkoutSessionScreen() {
                         </View>
                     ))
                 }
-            </ScrollView >
+
+                <View className='mb-20' />
+            </ScrollView>
 
 
             {!session.isCompleted && (
