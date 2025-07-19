@@ -110,6 +110,7 @@ export default function WorkoutPlanLayout() {
             <Stack.Screen
                 name="workout-session-info"
                 options={{
+                    headerShown: false,
                     presentation: 'modal',
                     title: 'Session',
                 }}
