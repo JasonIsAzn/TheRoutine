@@ -44,12 +44,12 @@ export default function WorkoutPlanLayout() {
                     ),
                     headerRight: () =>
                     (
-                        <View className="flex-row gap-x-2 mr-2">
+                        <View className="flex-row gap-x-4">
                             <Pressable
                                 onPress={() =>
                                     router.push('/home/workout-plan/workout-calendar')
                                 }
-                                className="px-2 py-1"
+                                className="py-1"
                             >
                                 <FontAwesomeIcon
                                     icon={['fas', 'calendar']}
@@ -61,7 +61,7 @@ export default function WorkoutPlanLayout() {
                                 onPress={() =>
                                     router.push('/home/workout-plan/workout-plan-info')
                                 }
-                                className="px-2 py-1"
+                                className="py-1"
                             >
                                 <FontAwesomeIcon
                                     icon={['fas', 'gear']}
