@@ -1,28 +1,15 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { View, Text, ScrollView, ActivityIndicator, Pressable, TextInput, Alert } from 'react-native';
 import { useWorkoutPlan } from '../../../hooks/useWorkoutPlan';
 import { useAuth } from '../../../contexts/AuthContext';
-import {
-    fetchActiveWorkoutCycle,
-    createWorkoutCycle
-} from '../../../api/workoutCycle';
-import { router } from 'expo-router';
-import {
-    fetchWorkoutSessionByDate,
-    createWorkoutSession,
-    markWorkoutSessionAsCompleted
-} from '../../../api/workoutSession';
-
-import {
-    fetchSessionExercises,
-    toggleCompleteExercise,
-    toggleSkipExercise,
-    addSessionExercise,
-    softDeleteExercise
-} from '../../../api/workoutSessionExercise';
+import { fetchActiveWorkoutCycle, createWorkoutCycle } from '../../../api/workoutCycle';
+import { fetchWorkoutSessionByDate, createWorkoutSession, markWorkoutSessionAsCompleted } from '../../../api/workoutSession';
+import { fetchSessionExercises, toggleCompleteExercise, toggleSkipExercise, addSessionExercise, softDeleteExercise } from '../../../api/workoutSessionExercise';
 import { fetchBaseExercises } from '../../../api/baseExercise';
 import { Picker } from '@react-native-picker/picker';
 import { BaseExercise } from 'types/workout';
+import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
+import { useFocusEffect } from 'expo-router';
 
 
 interface ExerciseDraft {
@@ -63,67 +50,87 @@ export default function WorkoutSessionScreen() {
 
     const todayIndex = new Date().getUTCDay();
 
-    useEffect(() => {
-        const initialize = async () => {
-            if (!user || !plan) return;
+    useFocusEffect(
+        useCallback(() => {
+            let isActive = true;
 
-            try {
-                const existing = await fetchActiveWorkoutCycle(user.id);
-                setCycle(existing);
-            } catch {
-                await createWorkoutCycle({
-                    userId: user.id,
-                    workoutPlanId: plan.planId,
-                    startDate: new Date().toISOString(),
-                });
+            const initialize = async () => {
+                if (!user || !plan) return;
 
-                const newCycle = await fetchActiveWorkoutCycle(user.id);
-                setCycle(newCycle);
-            } finally {
-                setLoadingCycle(false);
+                try {
+                    const existing = await fetchActiveWorkoutCycle(user.id);
+                    if (isActive) setCycle(existing);
+                } catch {
+                    await createWorkoutCycle({
+                        userId: user.id,
+                        workoutPlanId: plan.planId,
+                        startDate: new Date().toISOString(),
+                    });
+
+                    const newCycle = await fetchActiveWorkoutCycle(user.id);
+                    if (isActive) setCycle(newCycle);
+                } finally {
+                    if (isActive) setLoadingCycle(false);
+                }
+            };
+
+            if (!planLoading && plan) {
+                initialize();
             }
-        };
 
-        if (!planLoading && plan) {
-            initialize();
-        }
-    }, [planLoading, plan]);
+            return () => {
+                isActive = false;
+            };
+        }, [user, plan, planLoading])
+    );
 
-    useEffect(() => {
-        const initTodaySession = async () => {
-            if (!user || !cycle) return;
+    useFocusEffect(
+        useCallback(() => {
+            let isActive = true;
 
+            const initTodaySession = async () => {
+                if (!user || !cycle) return;
 
-            const today = new Date().toISOString().split('T')[0];
-            const cycleDayIndex = cycle.dayOrderMap.findIndex((d: number) => d === todayIndex);
-            if (cycleDayIndex === -1) return;
+                const today = new Date().toISOString().split('T')[0];
+                const cycleDayIndex = cycle.dayOrderMap.findIndex((d: number) => d === todayIndex);
+                if (cycleDayIndex === -1) return;
 
-            try {
-                const result = await fetchWorkoutSessionByDate(user.id, today);
-                setSession(result);
-                const ex = await fetchSessionExercises(result.id);
-                setExercises(ex);
-            } catch {
-                const created = await createWorkoutSession({
-                    userId: user.id,
-                    workoutCycleId: cycle.id,
-                    cycleDayIndex,
-                    date: today
-                });
+                try {
+                    const result = await fetchWorkoutSessionByDate(user.id, today);
+                    if (isActive) {
+                        setSession(result);
+                        const ex = await fetchSessionExercises(result.id);
+                        setExercises(ex);
+                    }
+                } catch {
+                    await createWorkoutSession({
+                        userId: user.id,
+                        workoutCycleId: cycle.id,
+                        cycleDayIndex,
+                        date: today,
+                    });
 
-                const newSession = await fetchWorkoutSessionByDate(user.id, today);
-                setSession(newSession);
-                const ex = await fetchSessionExercises(newSession.id);
-                setExercises(ex);
-            } finally {
-                setLoadingSession(false);
+                    const newSession = await fetchWorkoutSessionByDate(user.id, today);
+                    if (isActive) {
+                        setSession(newSession);
+                        const ex = await fetchSessionExercises(newSession.id);
+                        setExercises(ex);
+                    }
+                } finally {
+                    if (isActive) setLoadingSession(false);
+                }
+            };
+
+            if (!loadingCycle && cycle) {
+                initTodaySession();
             }
-        };
 
-        if (!loadingCycle && cycle) {
-            initTodaySession();
-        }
-    }, [loadingCycle, cycle]);
+            return () => {
+                isActive = false;
+            };
+        }, [user, cycle, loadingCycle])
+    );
+
 
     useEffect(() => {
         const loadBaseExercises = async () => {
@@ -140,7 +147,7 @@ export default function WorkoutSessionScreen() {
 
     if (planLoading || loadingCycle || !plan || !cycle) {
         return (
-            <View className="flex-1 justify-center items-center bg-white">
+            <View className="flex-1 justify-center items-center bg-background">
                 <ActivityIndicator size="large" />
                 <Text className="mt-4">Loading Workout Cycle...</Text>
             </View>
@@ -207,236 +214,249 @@ export default function WorkoutSessionScreen() {
         setShowAddForm(true);
     };
 
+    if (loadingSession || !session) {
+        return (
+            <View className="flex-1 justify-center items-center bg-background">
+                <ActivityIndicator size="large" />
+                <Text className="mt-4">Loading today's session...</Text>
+            </View>
+        );
+    }
+
 
 
     return (
-        <ScrollView className="flex-1 bg-white px-4 pt-6">
-            {/* Session UI */}
-            {loadingSession ? (
-                <View className="mb-6">
-                    <ActivityIndicator size="small" />
-                    <Text className="text-center mt-2">Loading today's session...</Text>
-                </View>
-            ) : session && (
-                <View className="mb-8">
-                    <Text className="text-xl font-bold mb-2 text-center">Today's Workout</Text>
-                    <Text className="text-lg mb-2 text-center">{plan.name}</Text>
+        <ScrollView className="flex-1 bg-background px-4 pt-2">
+            <View className="mb-8">
+                <Text className="text-2xl font-bold mb-10">{session.label}</Text>
 
-                    {session.isCompleted && (
-                        <Text className="text-green-600 text-center font-semibold mb-2">✅ Session Completed</Text>
-                    )}
-
-                    {exercises.length === 0 ? (
-                        <Text className="text-center text-gray-500 italic">Rest Day</Text>
-                    ) : (
-                        exercises.map((exercise) => (
-                            <View key={exercise.id} className="flex-row items-center justify-between mb-2">
-                                <View className="flex-1">
-                                    <Text className="text-base font-semibold">{exercise.name}</Text>
-                                    <Text className="text-xs text-gray-500">
-                                        {exercise.isOptional ? 'Optional • ' : ''}
-                                        {exercise.isSkipped ? 'Skipped' : exercise.isCompleted ? 'Completed' : 'Pending'}
-                                    </Text>
-                                </View>
-                                <View className="flex-row gap-2">
-                                    <Pressable onPress={() => handleToggleSkip(exercise.id)}>
-                                        <Text className="text-sm text-orange-600">Skip</Text>
-                                    </Pressable>
-                                    <Pressable onPress={() => handleToggleComplete(exercise.id)}>
-                                        <Text className="text-sm text-green-600">✓</Text>
-                                    </Pressable>
-                                    <Pressable onPress={() => handleSoftDelete(exercise.id)}>
-                                        <Text className="text-sm text-red-500">X</Text>
-                                    </Pressable>
-                                    <Pressable onPress={() => handleSwap(exercise)}>
-                                        <Text className="text-sm text-blue-600">Swap</Text>
-                                    </Pressable>
-
-                                </View>
-                            </View>
-                        ))
-                    )}
-
-                    <Pressable
-                        className="bg-gray-800 py-2 px-3 rounded mt-4"
-                        onPress={() => setShowAddForm(true)}
-                    >
-                        <Text className="text-white text-center text-sm">+ Add Exercise</Text>
-                    </Pressable>
-
-                    <Pressable
-                        className="mt-4 bg-green-600 py-2 px-4 rounded"
-                        onPress={async () => {
-                            try {
-                                await markWorkoutSessionAsCompleted(session.id);
-                                Alert.alert("Session marked as complete.");
-                                setSession((prev: any) => ({ ...prev, isCompleted: true }));
-                            } catch (err) {
-                                console.error(err);
-                                Alert.alert("Failed to mark session as complete.");
-                            }
-                        }}
-                    >
-                        <Text className="text-white text-center font-semibold">Mark Session Complete</Text>
-                    </Pressable>
-
-                    {showAddForm && (
-                        <View className="mt-4 bg-gray-100 p-4 rounded">
-                            {/* Toggle Manual vs Base Picker */}
-                            <View className="flex-row mb-2 items-center">
-                                <Text className="mr-2">Use Base:</Text>
+                {exercises.length === 0 ? (
+                    <Text className="text-center text-gray-500 italic">Rest Day</Text>
+                ) : (
+                    exercises.map((exercise) => (
+                        <View key={exercise.id} className="flex-row items-center mb-8 ">
+                            <View className='flex-row items-center'>
+                                {/* Check + Name */}
                                 <Pressable
-                                    className={`px-3 py-1 rounded ${newExerciseDraft.useBaseSelect ? 'bg-green-600' : 'bg-gray-400'}`}
-                                    onPress={() =>
-                                        setNewExerciseDraft((prev) => ({
-                                            ...prev,
-                                            useBaseSelect: !prev.useBaseSelect,
-                                            name: '',
-                                            muscles: [''],
-                                            baseExerciseId: null,
-                                        }))
-                                    }
+                                    onPress={() => !exercise.isSkipped ? handleToggleComplete(exercise.id) : handleToggleSkip(exercise.id)}
+                                    className="flex-1 flex-row items-center gap-2"
                                 >
-                                    <Text className="text-white">{newExerciseDraft.useBaseSelect ? 'ON' : 'OFF'}</Text>
+                                    <View className={`items-center justify-center h-10 w-10 rounded-full ${exercise.isCompleted ? 'bg-primary' : 'bg-background border border-gray'}`}>
+                                        {exercise.isCompleted && (
+                                            <FontAwesomeIcon icon={['fas', 'check']} size={18} color="#fff" />
+                                        )}
+                                        {exercise.isSkipped && (
+                                            <FontAwesomeIcon icon={['fas', 'x']} size={18} color="#808080" />
+                                        )}
+                                    </View>
+
+                                    <View>
+                                        <Text className={`text-lg font-semibold ${exercise.isSkipped && "line-through"} `}>{exercise.name}</Text>
+                                        <Text>{"60lbs"}</Text>
+                                    </View>
                                 </Pressable>
+
+                                {/* Action Items */}
+                                {!(exercise.isSkipped || exercise.isCompleted) && (
+                                    <View className='flex-row gap-5'>
+                                        <Pressable onPress={() => handleSwap(exercise)}>
+                                            <FontAwesomeIcon icon={['fas', 'right-left']} size={18} color="#808080" />
+                                        </Pressable>
+                                        <Pressable onPress={() => handleToggleSkip(exercise.id)}>
+                                            <FontAwesomeIcon icon={['fas', 'ban']} size={18} color="#808080" />
+                                        </Pressable>
+                                    </View>
+                                )}
                             </View>
-
-                            {newExerciseDraft.useBaseSelect ? (
-                                <View className="border border-gray-300 rounded mb-2 bg-white">
-                                    <Picker
-                                        selectedValue={newExerciseDraft.baseExerciseId ?? ''}
-                                        onValueChange={(baseId) => {
-                                            const selected = baseExercises.find((b) => b.id === baseId);
-                                            if (selected) {
-                                                setNewExerciseDraft((prev) => ({
-                                                    ...prev,
-                                                    baseExerciseId: selected.id,
-                                                    name: selected.name,
-                                                    muscles: selected.muscles,
-                                                }));
-                                            }
-                                        }}
-                                    >
-                                        <Picker.Item label="Select Exercise..." value="" />
-                                        {baseExercises.map((base) => (
-                                            <Picker.Item key={base.id} label={base.name} value={base.id} />
-                                        ))}
-                                    </Picker>
-                                </View>
-                            ) : (
-                                <TextInput
-                                    className="border border-gray-300 rounded px-3 py-2 mb-2 bg-white"
-                                    placeholder="Exercise name"
-                                    value={newExerciseDraft.name}
-                                    onChangeText={(text) =>
-                                        setNewExerciseDraft((prev) => ({ ...prev, name: text }))
-                                    }
-                                />
-                            )}
-
-                            {newExerciseDraft.muscles.map((muscle, idx) => (
-                                <View key={idx} className="flex-row items-center mb-2">
-                                    <TextInput
-                                        className="flex-1 border border-gray-300 rounded px-3 py-2 bg-white"
-                                        placeholder={`Muscle ${idx + 1}`}
-                                        value={muscle}
-                                        onChangeText={(text) => {
-                                            const updated = [...newExerciseDraft.muscles];
-                                            updated[idx] = text;
-                                            setNewExerciseDraft((prev) => ({ ...prev, muscles: updated }));
-                                        }}
-                                    />
-                                    <Pressable
-                                        className="ml-2 px-2 py-1 bg-red-500 rounded"
-                                        onPress={() => {
-                                            const updated = newExerciseDraft.muscles.filter((_, i) => i !== idx);
-                                            setNewExerciseDraft((prev) => ({ ...prev, muscles: updated }));
-                                        }}
-                                    >
-                                        <Text className="text-white">X</Text>
-                                    </Pressable>
-                                </View>
-                            ))}
-
-                            <Pressable
-                                className="mb-2 px-3 py-2 bg-blue-600 rounded"
-                                onPress={() =>
-                                    setNewExerciseDraft((prev) => ({
-                                        ...prev,
-                                        muscles: [...prev.muscles, ''],
-                                    }))
-                                }
-                            >
-                                <Text className="text-white text-sm text-center">+ Add Muscle</Text>
-                            </Pressable>
-
-                            <Pressable
-                                className="bg-green-600 px-3 py-2 rounded"
-                                onPress={async () => {
-                                    const newExercise = {
-                                        workoutSessionId: session.id,
-                                        name: newExerciseDraft.name,
-                                        muscles: newExerciseDraft.muscles.filter((m) => m.trim() !== ''),
-                                        order: newExerciseDraft.order ?? exercises.length,
-                                        isOptional: true,
-                                        isCompleted: false,
-                                        isSkipped: false,
-                                        isDeleted: false,
-                                        weight: null,
-                                        baseExerciseId: newExerciseDraft.baseExerciseId ?? null,
-                                    };
-
-                                    const created = await addSessionExercise(newExercise);
-
-                                    let updatedExercises = await fetchSessionExercises(session.id);
-
-
-                                    updatedExercises = updatedExercises
-                                        .filter((e: SessionExercise) => !e.isDeleted)
-                                        .sort((a: SessionExercise, b: SessionExercise) => a.order - b.order);
-
-
-                                    for (let i = 0; i < updatedExercises.length; i++) {
-                                        if (updatedExercises[i].order !== i) {
-                                            updatedExercises[i].order = i;
-                                            await addSessionExercise({ ...updatedExercises[i], id: updatedExercises[i].id });
-                                        }
-                                    }
-
-                                    setExercises(updatedExercises);
-                                    setNewExerciseDraft({ name: '', muscles: [''], useBaseSelect: false, baseExerciseId: null });
-                                    setShowAddForm(false);
-                                }}
-                            >
-                                <Text className="text-white text-center text-sm">Save Exercise</Text>
-                            </Pressable>
-
                         </View>
-                    )}
-
-                </View>
-            )}
-
-            {/* Upcoming Days */}
-            <Text className="text-xl font-bold mb-4 text-center">Upcoming Days</Text>
-
-            {remainingCycleDays.map((day: { label: string; weekday: string }, idx: number) => (
-                <View key={`remain-${idx}`} className="mb-4">
-                    <Text className="text-sm text-gray-500">{day.weekday}</Text>
-                    <Text className="text-base font-semibold text-black">{day.label}</Text>
-                </View>
-            ))}
-
-            {needed > 0 && (
-                <Text className="text-center italic text-gray-400 my-2">-- work cycle complete --</Text>
-            )}
-
-            {upcomingPlanDays.map((day, idx) => (
-                <View key={`plan-${idx}`} className="mb-4">
-                    <Text className="text-sm text-gray-500">{day.weekday}</Text>
-                    <Text className="text-base font-semibold text-black">{day.label}</Text>
-                </View>
-            ))}
+                    ))
+                )}
+            </View>
         </ScrollView >
     );
 }
+
+
+//   <Pressable
+//                 className="bg-gray-800 py-2 px-3 rounded mt-4"
+//                 onPress={() => setShowAddForm(true)}
+//             >
+//                 <Text className="text-white text-center text-sm">+ Add Exercise</Text>
+//             </Pressable>
+
+
+
+// {session.isCompleted && (
+//     <Text className="text-green-600 text-center font-semibold mb-2">✅ Session Completed</Text>
+// )}
+
+// <Pressable
+//     className="mt-4 bg-green-600 py-2 px-4 rounded"
+//     onPress={async () => {
+//         try {
+//             await markWorkoutSessionAsCompleted(session.id);
+//             Alert.alert("Session marked as complete.");
+//             setSession((prev: any) => ({ ...prev, isCompleted: true }));
+//         } catch (err) {
+//             console.error(err);
+//             Alert.alert("Failed to mark session as complete.");
+//         }
+//     }}
+// >
+//     <Text className="text-white text-center font-semibold">Mark Session Complete</Text>
+// </Pressable>
+
+
+// {showAddForm && (
+//     <View className="mt-4 bg-gray-100 p-4 rounded">
+//         {/* Toggle Manual vs Base Picker */}
+//         <View className="flex-row mb-2 items-center">
+//             <Text className="mr-2">Use Base:</Text>
+//             <Pressable
+//                 className={`px-3 py-1 rounded ${newExerciseDraft.useBaseSelect ? 'bg-green-600' : 'bg-gray-400'}`}
+//                 onPress={() =>
+//                     setNewExerciseDraft((prev) => ({
+//                         ...prev,
+//                         useBaseSelect: !prev.useBaseSelect,
+//                         name: '',
+//                         muscles: [''],
+//                         baseExerciseId: null,
+//                     }))
+//                 }
+//             >
+//                 <Text className="text-white">{newExerciseDraft.useBaseSelect ? 'ON' : 'OFF'}</Text>
+//             </Pressable>
+//         </View>
+
+//         {newExerciseDraft.useBaseSelect ? (
+//             <View className="border border-gray-300 rounded mb-2 bg-white">
+//                 <Picker
+//                     selectedValue={newExerciseDraft.baseExerciseId ?? ''}
+//                     onValueChange={(baseId) => {
+//                         const selected = baseExercises.find((b) => b.id === baseId);
+//                         if (selected) {
+//                             setNewExerciseDraft((prev) => ({
+//                                 ...prev,
+//                                 baseExerciseId: selected.id,
+//                                 name: selected.name,
+//                                 muscles: selected.muscles,
+//                             }));
+//                         }
+//                     }}
+//                 >
+//                     <Picker.Item label="Select Exercise..." value="" />
+//                     {baseExercises.map((base) => (
+//                         <Picker.Item key={base.id} label={base.name} value={base.id} />
+//                     ))}
+//                 </Picker>
+//             </View>
+//         ) : (
+//             <TextInput
+//                 className="border border-gray-300 rounded px-3 py-2 mb-2 bg-white"
+//                 placeholder="Exercise name"
+//                 value={newExerciseDraft.name}
+//                 onChangeText={(text) =>
+//                     setNewExerciseDraft((prev) => ({ ...prev, name: text }))
+//                 }
+//             />
+//         )}
+
+//         {newExerciseDraft.muscles.map((muscle, idx) => (
+//             <View key={idx} className="flex-row items-center mb-2">
+//                 <TextInput
+//                     className="flex-1 border border-gray-300 rounded px-3 py-2 bg-white"
+//                     placeholder={`Muscle ${idx + 1}`}
+//                     value={muscle}
+//                     onChangeText={(text) => {
+//                         const updated = [...newExerciseDraft.muscles];
+//                         updated[idx] = text;
+//                         setNewExerciseDraft((prev) => ({ ...prev, muscles: updated }));
+//                     }}
+//                 />
+//                 <Pressable
+//                     className="ml-2 px-2 py-1 bg-red-500 rounded"
+//                     onPress={() => {
+//                         const updated = newExerciseDraft.muscles.filter((_, i) => i !== idx);
+//                         setNewExerciseDraft((prev) => ({ ...prev, muscles: updated }));
+//                     }}
+//                 >
+//                     <Text className="text-white">X</Text>
+//                 </Pressable>
+//             </View>
+//         ))}
+
+//         <Pressable
+//             className="mb-2 px-3 py-2 bg-blue-600 rounded"
+//             onPress={() =>
+//                 setNewExerciseDraft((prev) => ({
+//                     ...prev,
+//                     muscles: [...prev.muscles, ''],
+//                 }))
+//             }
+//         >
+//             <Text className="text-white text-sm text-center">+ Add Muscle</Text>
+//         </Pressable>
+
+//         <Pressable
+//             className="bg-green-600 px-3 py-2 rounded"
+//             onPress={async () => {
+//                 const newExercise = {
+//                     workoutSessionId: session.id,
+//                     name: newExerciseDraft.name,
+//                     muscles: newExerciseDraft.muscles.filter((m) => m.trim() !== ''),
+//                     order: newExerciseDraft.order ?? exercises.length,
+//                     isOptional: true,
+//                     isCompleted: false,
+//                     isSkipped: false,
+//                     isDeleted: false,
+//                     weight: null,
+//                     baseExerciseId: newExerciseDraft.baseExerciseId ?? null,
+//                 };
+
+//                 const created = await addSessionExercise(newExercise);
+
+//                 let updatedExercises = await fetchSessionExercises(session.id);
+
+
+//                 updatedExercises = updatedExercises
+//                     .filter((e: SessionExercise) => !e.isDeleted)
+//                     .sort((a: SessionExercise, b: SessionExercise) => a.order - b.order);
+
+
+//                 for (let i = 0; i < updatedExercises.length; i++) {
+//                     if (updatedExercises[i].order !== i) {
+//                         updatedExercises[i].order = i;
+//                         await addSessionExercise({ ...updatedExercises[i], id: updatedExercises[i].id });
+//                     }
+//                 }
+
+//                 setExercises(updatedExercises);
+//                 setNewExerciseDraft({ name: '', muscles: [''], useBaseSelect: false, baseExerciseId: null });
+//                 setShowAddForm(false);
+//             }}
+//         >
+//             <Text className="text-white text-center text-sm">Save Exercise</Text>
+//         </Pressable>
+
+//     </View>
+// )}
+// {/* Upcoming Days */}
+// <Text className="text-xl font-bold mb-4 text-center">Upcoming Days</Text>
+
+// {remainingCycleDays.map((day: { label: string; weekday: string }, idx: number) => (
+//     <View key={`remain-${idx}`} className="mb-4">
+//         <Text className="text-sm text-gray-500">{day.weekday}</Text>
+//         <Text className="text-base font-semibold text-black">{day.label}</Text>
+//     </View>
+// ))}
+
+// {needed > 0 && (
+//     <Text className="text-center italic text-gray-400 my-2">-- work cycle complete --</Text>
+// )}
+
+// {upcomingPlanDays.map((day, idx) => (
+//     <View key={`plan-${idx}`} className="mb-4">
+//         <Text className="text-sm text-gray-500">{day.weekday}</Text>
+//         <Text className="text-base font-semibold text-black">{day.label}</Text>
+//     </View>
+// ))}

@@ -36,6 +36,7 @@ namespace TheRoutineWeb.Controllers.Api
                 WorkoutCycleId = session.WorkoutCycleId,
                 Date = session.Date,
                 IsCompleted = session.IsCompleted,
+                Label = session.Label,
                 Exercises = session.Exercises.Select(e =>
                 {
                     return new WorkoutSessionExerciseDto
