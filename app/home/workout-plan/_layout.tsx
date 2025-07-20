@@ -93,17 +93,6 @@ export default function WorkoutPlanLayout() {
                     ),
                 }}
             />
-            <Stack.Screen name="update"
-                options={{
-                    title: '',
-                    presentation: 'modal',
-                    headerBackTitle: 'Back',
-                    headerTintColor: '#FFD124',
-                    headerStyle: {
-                        backgroundColor: '#F5F5F7',
-                    },
-                    headerShadowVisible: false,
-                }} />
             <Stack.Screen name="workout-calendar"
                 options={{
                     title: '',
@@ -139,6 +128,18 @@ export default function WorkoutPlanLayout() {
                     presentation: 'modal',
                 }}
             />
+
+            <Stack.Screen name="update"
+                options={{
+                    title: '',
+                    presentation: 'modal',
+                    headerBackTitle: 'Back',
+                    headerTintColor: '#FFD124',
+                    headerStyle: {
+                        backgroundColor: '#F5F5F7',
+                    },
+                    headerShadowVisible: false,
+                }} />
         </Stack>
     );
 }
