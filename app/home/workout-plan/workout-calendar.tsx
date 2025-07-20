@@ -80,26 +80,69 @@ export default function WorkoutSessionScreen() {
             <View className="flex-row flex-wrap">{days}</View>
 
             <Text className="text-xl font-bold mt-6 mb-2">Workout Plan History</Text>
-            {plans.map((plan) => (
-                <View key={plan.id} className="mb-2">
-                    <Text className="font-semibold">{plan.name}</Text>
-                    <Text className="text-sm text-gray-700">
-                        {new Date(plan.createdAt).toLocaleDateString('en-US', {
-                            year: 'numeric',
-                            month: 'long',
-                            day: 'numeric',
-                        })}{" "}
-                        —{" "}
-                        {plan.endedAt
-                            ? new Date(plan.endedAt).toLocaleDateString('en-US', {
+
+            {Object.values(
+                plans.reduce((acc: Record<number, any[]>, plan) => {
+                    const groupId = plan.planGroupId;
+                    if (!acc[groupId]) acc[groupId] = [];
+                    acc[groupId].push(plan);
+                    return acc;
+                }, {})
+            ).map((group: any[]) => {
+                const sortedGroup = group.sort((a, b) => a.version - b.version);
+                const first = sortedGroup[0];
+                const last = sortedGroup[sortedGroup.length - 1];
+
+                return (
+                    <View key={first.planGroupId} className="mb-4">
+                        <Text className="font-semibold">
+                            {first.name} —{" "}
+                            {new Date(first.createdAt).toLocaleDateString('en-US', {
                                 year: 'numeric',
                                 month: 'long',
                                 day: 'numeric',
-                            })
-                            : 'Present'}
-                    </Text>
-                </View>
-            ))}
+                            })}{" "}
+                            to{" "}
+                            {last.endedAt
+                                ? new Date(last.endedAt).toLocaleDateString('en-US', {
+                                    year: 'numeric',
+                                    month: 'long',
+                                    day: 'numeric',
+                                })
+                                : 'Present'}
+                        </Text>
+
+                        {group.length > 1 &&
+                            sortedGroup.map((version) => (
+                                <Pressable
+                                    key={version.id}
+                                    onPress={() =>
+                                        console.log(`Pressed version ${version.version}, id: ${version.id}`)
+                                    }
+                                    className="ml-4 mt-1"
+                                >
+                                    <Text className="text-gray-700">
+                                        • Version {version.version} —{" "}
+                                        {new Date(version.createdAt).toLocaleDateString('en-US', {
+                                            year: 'numeric',
+                                            month: 'short',
+                                            day: 'numeric',
+                                        })}{" "}
+                                        to{" "}
+                                        {version.endedAt
+                                            ? new Date(version.endedAt).toLocaleDateString('en-US', {
+                                                year: 'numeric',
+                                                month: 'short',
+                                                day: 'numeric',
+                                            })
+                                            : 'Present'}
+                                    </Text>
+                                </Pressable>
+                            ))}
+                    </View>
+                );
+            })}
         </ScrollView>
+
     );
 }

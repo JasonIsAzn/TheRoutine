@@ -104,7 +104,16 @@ export default function WorkoutPlanLayout() {
                     },
                     headerShadowVisible: false,
                 }} />
-            <Stack.Screen name="workout-calendar" />
+            <Stack.Screen name="workout-calendar"
+                options={{
+                    title: '',
+                    headerTintColor: '#FFD124',
+                    headerStyle: {
+                        backgroundColor: '#F5F5F7',
+                    },
+                    headerShadowVisible: false,
+                }}
+            />
 
             {/* Modals */}
             <Stack.Screen
