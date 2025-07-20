@@ -16,3 +16,10 @@ export const deactivateWorkoutPlan = async (userId: number) => {
     });
     return response.data;
 };
+
+export const fetchAllWorkoutPlans = async (userId: number) => {
+    const response = await api.get('/workoutplanapi/plans', {
+        params: { userId },
+    });
+    return response.data;
+};

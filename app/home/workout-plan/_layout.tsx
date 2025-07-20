@@ -1,3 +1,4 @@
+import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
 import { Stack, usePathname, useRouter } from 'expo-router';
 import { Pressable, Text, View } from 'react-native';
 
@@ -7,8 +8,26 @@ export default function WorkoutPlanLayout() {
 
     return (
         <Stack>
+            <Stack.Screen name="index" options={{ headerShown: false }} />
+            <Stack.Screen name="create"
+
+                options={{
+                    title: '',
+                    headerBackTitle: 'Home',
+                    headerTintColor: '#FFD124',
+                    headerStyle: {
+                        backgroundColor: '#F5F5F7',
+                    },
+                    headerShadowVisible: false,
+                    headerLeft: () => (
+                        <Pressable onPress={() => router.dismiss()}>
+                            <Text className="text-primary text-2xl">Home</Text>
+                        </Pressable>
+                    ),
+                }}
+            />
             <Stack.Screen
-                name="index"
+                name="workout-session"
                 options={{
                     title: '',
                     headerBackTitle: 'Home',
@@ -23,46 +42,31 @@ export default function WorkoutPlanLayout() {
                         </Pressable>
                     ),
                     headerRight: () =>
-                        pathname === '/home/workout-plan' ? (
-                            <View className="flex-row gap-x-4 mr-2">
-                                <Pressable
-                                    onPress={() =>
-                                        router.push('/home/workout-plan/workout-plan-info')
-                                    }
-                                    className="px-2 py-1 bg-blue-600 rounded"
-                                >
-                                    <Text className="text-white text-xs">View Plan</Text>
-                                </Pressable>
-                                <Pressable
-                                    onPress={() =>
-                                        router.push('/home/workout-plan/workout-calendar')
-                                    }
-                                    className="px-2 py-1 bg-blue-600 rounded"
-                                >
-                                    <Text className="text-white text-xs">Calendar</Text>
-                                </Pressable>
-                            </View>
-                        ) : null,
-                }}
-            />
-            <Stack.Screen name="create" />
-            <Stack.Screen
-                name="workout-session"
-                options={{
-                    title: 'Today Workout Session',
-                    headerRight: () => (
-                        <View className="flex-row gap-x-4 mr-2">
+                    (
+                        <View className="flex-row gap-x-4">
                             <Pressable
-                                onPress={() => router.push('/home/workout-plan/workout-plan-info')}
-                                className="px-2 py-1 bg-blue-600 rounded"
+                                onPress={() =>
+                                    router.push('/home/workout-plan/workout-calendar')
+                                }
+                                className="py-1"
                             >
-                                <Text className="text-white text-xs">View Plan</Text>
+                                <FontAwesomeIcon
+                                    icon={['fas', 'calendar']}
+                                    size={18}
+                                    color="#FFD124"
+                                />
                             </Pressable>
                             <Pressable
-                                onPress={() => router.push('/home/workout-plan/workout-calendar')}
-                                className="px-2 py-1 bg-blue-600 rounded"
+                                onPress={() =>
+                                    router.push('/home/workout-plan/workout-plan-info')
+                                }
+                                className="py-1"
                             >
-                                <Text className="text-white text-xs">Calendar</Text>
+                                <FontAwesomeIcon
+                                    icon={['fas', 'gear']}
+                                    size={18}
+                                    color="#FFD124"
+                                />
                             </Pressable>
                         </View>
                     ),
@@ -100,18 +104,36 @@ export default function WorkoutPlanLayout() {
                     },
                     headerShadowVisible: false,
                 }} />
-            <Stack.Screen name="workout-calendar" />
+            <Stack.Screen name="workout-calendar"
+                options={{
+                    title: '',
+                    headerTintColor: '#FFD124',
+                    headerStyle: {
+                        backgroundColor: '#F5F5F7',
+                    },
+                    headerShadowVisible: false,
+                }}
+            />
 
             {/* Modals */}
             <Stack.Screen
                 name="workout-session-info"
                 options={{
+                    headerShown: false,
                     presentation: 'modal',
                     title: 'Session',
                 }}
             />
             <Stack.Screen
                 name="add-exercise"
+                options={{
+                    headerShown: false,
+                    presentation: 'modal',
+                }}
+            />
+
+            <Stack.Screen
+                name="add-exercise-session"
                 options={{
                     headerShown: false,
                     presentation: 'modal',

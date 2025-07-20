@@ -16,6 +16,31 @@ namespace TheRoutineWeb.Controllers.Api
             _context = context;
         }
 
+        [HttpGet("plans")]
+        public async Task<IActionResult> GetAllPlans([FromQuery] int userId)
+        {
+            var plans = await _context.WorkoutPlans
+                .Where(p => p.UserId == userId)
+                .OrderByDescending(p => p.CreatedAt)
+                .Select(p => new WorkoutPlanDto
+                {
+                    Id = p.Id,
+                    UserId = p.UserId,
+                    PlanGroupId = p.PlanGroupId,
+                    Version = p.Version,
+                    Name = p.Name,
+                    SplitType = p.SplitType,
+                    CycleLength = p.CycleLength,
+                    IsActive = p.IsActive,
+                    CreatedAt = p.CreatedAt,
+                    EndedAt = p.EndedAt,
+                    WorkoutDays = new()
+                })
+                .ToListAsync();
+
+            return Ok(plans);
+        }
+
         [HttpGet("active-plan")]
         public IActionResult GetActivePlan([FromQuery] int userId)
         {
