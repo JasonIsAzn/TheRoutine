@@ -17,14 +17,18 @@ namespace TheRoutineWeb.Controllers.Api
         }
 
         [HttpGet("by-date")]
-        public async Task<IActionResult> GetByDate([FromQuery] int userId, [FromQuery] DateTime date)
+        public async Task<IActionResult> GetByDate([FromQuery] int userId, [FromQuery] DateTime date, [FromQuery] int timezoneOffsetMinutes = 0)
         {
+            var localDate = date;
+            var startUtc = localDate.AddMinutes(-timezoneOffsetMinutes);
+            var endUtc = localDate.AddDays(1).AddMinutes(-timezoneOffsetMinutes);
+
             var session = await _context.WorkoutSessions
                 .Include(s => s.Exercises.Where(e => !e.IsDeleted))
                 .FirstOrDefaultAsync(s =>
                     s.UserId == userId &&
-                    s.Date >= date.Date &&
-                    s.Date < date.Date.AddDays(1));
+                    s.Date >= startUtc &&
+                    s.Date < endUtc);
 
             if (session == null)
                 return NotFound(new { message = "No session found for that date." });
@@ -37,26 +41,24 @@ namespace TheRoutineWeb.Controllers.Api
                 Date = session.Date,
                 IsCompleted = session.IsCompleted,
                 Label = session.Label,
-                Exercises = session.Exercises.Select(e =>
+                Exercises = session.Exercises.Select(e => new WorkoutSessionExerciseDto
                 {
-                    return new WorkoutSessionExerciseDto
-                    {
-                        WorkoutSessionId = e.WorkoutSessionId,
-                        Name = e.Name,
-                        Muscles = e.Muscles,
-                        IsOptional = e.IsOptional,
-                        Order = e.Order,
-                        Weight = e.Weight,
-                        IsCompleted = e.IsCompleted,
-                        IsSkipped = e.IsSkipped,
-                        IsDeleted = e.IsDeleted,
-                        BaseExerciseId = e.BaseExerciseId
-                    };
+                    WorkoutSessionId = e.WorkoutSessionId,
+                    Name = e.Name,
+                    Muscles = e.Muscles,
+                    IsOptional = e.IsOptional,
+                    Order = e.Order,
+                    Weight = e.Weight,
+                    IsCompleted = e.IsCompleted,
+                    IsSkipped = e.IsSkipped,
+                    IsDeleted = e.IsDeleted,
+                    BaseExerciseId = e.BaseExerciseId
                 }).ToList()
             };
 
             return Ok(dto);
         }
+
 
         [HttpPost]
         public async Task<IActionResult> Create([FromBody] CreateWorkoutSessionRequest request)
@@ -84,7 +86,7 @@ namespace TheRoutineWeb.Controllers.Api
             {
                 UserId = request.UserId,
                 WorkoutCycleId = request.WorkoutCycleId,
-                Date = request.Date.Date,
+                Date = request.Date.Date.AddMinutes(request.TimezoneOffsetMinutes),
                 DayIndex = mappedDayOrder,
                 Label = matchingDay.Label,
                 IsCompleted = matchingDay.Exercises.Count == 0,
@@ -239,7 +241,7 @@ namespace TheRoutineWeb.Controllers.Api
         public int WorkoutCycleId { get; set; }
         public int CycleDayIndex { get; set; }
         public DateTime Date { get; set; }
+        public int TimezoneOffsetMinutes { get; set; }
     }
-
 
 }

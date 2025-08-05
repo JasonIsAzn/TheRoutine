@@ -2,7 +2,11 @@ import api from './index';
 
 export const fetchWorkoutSessionByDate = async (userId: number, date: string) => {
     const response = await api.get('/workoutsessionapi/by-date', {
-        params: { userId, date }
+        params: {
+            userId,
+            date,
+            timezoneOffsetMinutes: new Date().getTimezoneOffset(),
+        }
     });
     return response.data;
 };
@@ -13,7 +17,10 @@ export const createWorkoutSession = async (data: {
     cycleDayIndex: number;
     date: string; // ISO format
 }) => {
-    const response = await api.post('/workoutsessionapi', data);
+    const response = await api.post('/workoutsessionapi', {
+        ...data,
+        timezoneOffsetMinutes: new Date().getTimezoneOffset(),
+    });
     return response.data;
 };
 

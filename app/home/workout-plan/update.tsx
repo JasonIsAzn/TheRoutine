@@ -159,17 +159,19 @@ export default function UpdateWorkoutPlanScreen() {
             return;
         }
 
-        const todayIndex = new Date().getUTCDay();
         const stored = await AsyncStorage.getItem('activePlan');
         if (!stored) {
             Alert.alert('No active plan found.');
             return;
         }
         const plan = JSON.parse(stored);
-
+        const now = new Date();
+        const today = `${now.getFullYear()}-${(now.getMonth() + 1)
+            .toString()
+            .padStart(2, '0')}-${now.getDate().toString().padStart(2, '0')}`;
         let existingSession = null;
         try {
-            existingSession = await fetchWorkoutSessionByDate(user.id, new Date().toISOString().split('T')[0]);
+            existingSession = await fetchWorkoutSessionByDate(user.id, today);
         } catch {
             existingSession = null;
         }
@@ -223,7 +225,10 @@ export default function UpdateWorkoutPlanScreen() {
         if (!user) return;
 
         try {
-            const today = new Date().toISOString().split('T')[0];
+            const now = new Date();
+            const today = `${now.getFullYear()}-${(now.getMonth() + 1)
+                .toString()
+                .padStart(2, '0')}-${now.getDate().toString().padStart(2, '0')}`;
             let existingSession = null;
             try {
                 existingSession = await fetchWorkoutSessionByDate(user.id, today);

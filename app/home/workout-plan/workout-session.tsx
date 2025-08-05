@@ -57,7 +57,7 @@ export default function WorkoutSessionScreen() {
                     await createWorkoutCycle({
                         userId: user.id,
                         workoutPlanId: plan.planId,
-                        startDate: new Date().toISOString(),
+                        startDate: new Date()
                     });
 
                     const newCycle = await fetchActiveWorkoutCycle(user.id);
@@ -84,8 +84,14 @@ export default function WorkoutSessionScreen() {
             const initTodaySession = async () => {
                 if (!user || !cycle) return;
 
-                const today = new Date().toISOString().split('T')[0];
-                const cycleDayIndex = cycle.dayOrderMap.findIndex((d: number) => d === todayIndex);
+                const now = new Date();
+                const today = `${now.getFullYear()}-${(now.getMonth() + 1)
+                    .toString()
+                    .padStart(2, '0')}-${now.getDate().toString().padStart(2, '0')}`;
+
+                const cycleDayIndex = cycle.dayOrderMap.findIndex(
+                    (d: number) => d === todayIndex
+                );
                 if (cycleDayIndex === -1) return;
 
                 try {
