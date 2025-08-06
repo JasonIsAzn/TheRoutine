@@ -54,10 +54,15 @@ export default function WorkoutSessionScreen() {
                     const existing = await fetchActiveWorkoutCycle(user.id);
                     if (isActive) setCycle(existing);
                 } catch {
+                    const localNow = new Date();
+                    const localMidnight = new Date(localNow.getFullYear(), localNow.getMonth(), localNow.getDate());
+
+                    const utcFake = new Date(localMidnight.getTime() + localMidnight.getTimezoneOffset() * 60000);
+
                     await createWorkoutCycle({
                         userId: user.id,
                         workoutPlanId: plan.planId,
-                        startDate: new Date()
+                        startDate: utcFake,
                     });
 
                     const newCycle = await fetchActiveWorkoutCycle(user.id);
@@ -89,10 +94,17 @@ export default function WorkoutSessionScreen() {
                     .toString()
                     .padStart(2, '0')}-${now.getDate().toString().padStart(2, '0')}`;
 
-                const cycleDayIndex = cycle.dayOrderMap.findIndex(
-                    (d: number) => d === todayIndex
+                const timezoneOffsetMinutes = new Date().getTimezoneOffset();
+                const nowLocal = new Date(now.getTime() - timezoneOffsetMinutes * 60000);
+                const cycleStartLocal = new Date(
+                    new Date(cycle.startDate).getTime() - timezoneOffsetMinutes * 60000
                 );
-                if (cycleDayIndex === -1) return;
+
+                const cycleDayIndex = Math.floor(
+                    (nowLocal.getTime() - cycleStartLocal.getTime()) / (1000 * 60 * 60 * 24)
+                );
+
+                if (cycleDayIndex < 0 || cycleDayIndex > 6) return;
 
                 try {
                     const result = await fetchWorkoutSessionByDate(user.id, today);

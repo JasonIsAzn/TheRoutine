@@ -44,17 +44,14 @@ namespace TheRoutineWeb.Controllers.Api
             if (plan == null)
                 return BadRequest(new { message = "Active workout plan not found." });
 
-            var localStart = request.StartDate;
-            var utcStartDate = localStart.AddMinutes(-request.TimezoneOffsetMinutes);
-
-
+            var utcStartDate = request.StartDate;
+            var localStart = utcStartDate.AddMinutes(request.TimezoneOffsetMinutes);
             int startDayOfWeek = (int)localStart.DayOfWeek;
             var dayOrderMap = Enumerable.Range(startDayOfWeek, 7 - startDayOfWeek).ToList();
+            ;
 
-            var utcEndDate = utcStartDate
-                .AddDays(6 - startDayOfWeek)
-                .Date.AddHours(23).AddMinutes(59).AddSeconds(59);
-
+            var localEndDate = localStart.Date.AddDays(6 - startDayOfWeek).AddHours(23).AddMinutes(59).AddSeconds(59);
+            var utcEndDate = localEndDate.AddMinutes(-request.TimezoneOffsetMinutes);
             var cycle = new WorkoutCycle
             {
                 UserId = request.UserId,
