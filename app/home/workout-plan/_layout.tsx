@@ -1,10 +1,16 @@
 import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
+import { useAuth } from 'contexts/AuthContext';
 import { Stack, usePathname, useRouter } from 'expo-router';
 import { Pressable, Text, View } from 'react-native';
 
 export default function WorkoutPlanLayout() {
     const router = useRouter();
-    const pathname = usePathname();
+    const { logout } = useAuth();
+
+    const handleLogout = async () => {
+        await logout();
+        router.replace('/auth');
+    }
 
     return (
         <Stack>
@@ -85,11 +91,13 @@ export default function WorkoutPlanLayout() {
                     },
                     headerShadowVisible: false,
                     headerRight: () => (
-                        <Pressable
-                            onPress={() => router.push('/home/workout-plan/update')}
-                        >
-                            <Text className="text-primary text-2xl">Edit</Text>
-                        </Pressable>
+                        <View className="flex-row gap-x-4">
+                            <Pressable
+                                onPress={() => handleLogout()}
+                            >
+                                <Text className="text-red-500 text-2xl">Log out</Text>
+                            </Pressable>
+                        </View>
                     ),
                 }}
             />

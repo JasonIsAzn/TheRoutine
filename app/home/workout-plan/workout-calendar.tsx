@@ -146,7 +146,6 @@ export default function WorkoutSessionScreen() {
 
     return (
         <ScrollView className="flex-1 p-4 bg-background">
-            <Text className="text-xl font-bold mb-4">Your Sessions</Text>
             {displayedMonths}
 
             <Text className="text-xl font-bold mt-6 mb-2">Workout Plan History</Text>
