@@ -1,6 +1,8 @@
 using Microsoft.EntityFrameworkCore;
 using TheRoutineWeb.Data;
+using DotNetEnv;
 
+Env.Load();
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -23,8 +25,8 @@ builder.Services.AddCors(options =>
 
 builder.Services.AddControllersWithViews();
 
-var cs = builder.Configuration.GetConnectionString("DefaultConnection");
-
+;
+var cs = Environment.GetEnvironmentVariable("DB_CONNECTION_STRING") ?? builder.Configuration.GetConnectionString("DefaultConnection"); ;
 builder.Services.AddDbContext<AppDbContext>(options => options.UseMySql(cs, ServerVersion.AutoDetect(cs)));
 
 var app = builder.Build();

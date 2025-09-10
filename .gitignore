@@ -38,3 +38,4 @@ TheRoutineWeb/*.suo
 TheRoutineWeb/*.csproj.user
 
 TheRoutineWeb/publish/
+TheRoutineWeb/.env
