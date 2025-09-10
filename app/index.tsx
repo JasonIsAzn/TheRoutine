@@ -11,7 +11,7 @@ export default function Index() {
         if (!ready) return;
 
         if (user) {
-            router.replace('/home');
+            router.replace('/home/workout-plan');
         } else {
             router.replace('/auth');
         }

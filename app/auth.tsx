@@ -29,7 +29,7 @@ export default function AuthScreen() {
             const name = credential.fullName?.givenName ?? 'Apple User';
 
             await loginWithApple(appleId, email, name);
-            router.replace('/home');
+            router.replace('/home/workout-plan');
         } catch (e: any) {
             if (e.code === 'ERR_CANCELED') return;
             console.error(e);
@@ -49,7 +49,7 @@ export default function AuthScreen() {
             } else {
                 await login(email, password);
             }
-            router.replace('/home');
+            router.replace('/home/workout-plan');
         } catch (err: any) {
             console.error(err);
             if (err.response?.data?.message) {

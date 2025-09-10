@@ -19,11 +19,11 @@ export default function WorkoutPlanLayout() {
                         backgroundColor: '#F5F5F7',
                     },
                     headerShadowVisible: false,
-                    headerLeft: () => (
-                        <Pressable onPress={() => router.dismiss()}>
-                            <Text className="text-primary text-2xl">Home</Text>
-                        </Pressable>
-                    ),
+                    // headerLeft: () => (
+                    //     <Pressable onPress={() => router.dismiss()}>
+                    //         <Text className="text-primary text-2xl">Home</Text>
+                    //     </Pressable>
+                    // ),
                 }}
             />
             <Stack.Screen
@@ -36,11 +36,11 @@ export default function WorkoutPlanLayout() {
                         backgroundColor: '#F5F5F7',
                     },
                     headerShadowVisible: false,
-                    headerLeft: () => (
-                        <Pressable onPress={() => router.dismiss()}>
-                            <Text className="text-primary text-2xl">Home</Text>
-                        </Pressable>
-                    ),
+                    // headerLeft: () => (
+                    //     <Pressable onPress={() => router.dismiss()}>
+                    //         <Text className="text-primary text-2xl">Home</Text>
+                    //     </Pressable>
+                    // ),
                     headerRight: () =>
                     (
                         <View className="flex-row gap-x-4">
