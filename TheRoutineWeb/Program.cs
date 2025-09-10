@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using TheRoutineWeb.Data;
 using DotNetEnv;
+using MySqlConnector;
 
 Env.Load();
 
@@ -54,6 +55,16 @@ app.MapControllerRoute(
     .WithStaticAssets();
 
 app.MapGet("/healthz", () => "ok");
+
+app.MapGet("/dbping", async () =>
+{
+    var cs = Environment.GetEnvironmentVariable("DB_CONNECTION_STRING")!;
+    await using var conn = new MySqlConnection(cs);
+    await conn.OpenAsync();
+    using var cmd = new MySqlCommand("SELECT 1", conn);
+    var result = (long?)await cmd.ExecuteScalarAsync();
+    return result == 1 ? "db-ok" : "db-fail";
+});
 
 
 app.MapControllers();
