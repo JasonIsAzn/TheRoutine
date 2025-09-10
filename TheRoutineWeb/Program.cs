@@ -53,6 +53,8 @@ app.MapControllerRoute(
     pattern: "{controller=Home}/{action=Index}/{id?}")
     .WithStaticAssets();
 
+app.MapGet("/healthz", () => "ok");
+
 app.MapControllers();
 
 app.Run();
