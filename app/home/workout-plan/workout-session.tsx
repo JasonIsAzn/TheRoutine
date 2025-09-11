@@ -233,8 +233,7 @@ export default function WorkoutSessionScreen() {
     return (
         <View className='flex-1 relative'>
             <ScrollView className="flex-1 bg-background px-4 pt-2">
-
-                <View className="mb-8 border-b border-[#8080800/70]">
+                <View className="mb-8">
                     <Text className="text-2xl font-bold mb-10">{session.label}</Text>
 
                     {exercises.length === 0 ? (
@@ -320,31 +319,6 @@ export default function WorkoutSessionScreen() {
                         </View>
                     )}
                 </View>
-
-                {
-                    remainingCycleDays.map((day: { label: string; weekday: string }, idx: number) => (
-                        <View key={`remain-${idx}`} className="mb-2 flex-row items-center ">
-                            <Text className="text-lg text-gray w-[10%]">{day.weekday}</Text>
-                            <Text className="text-lg font-bold text-gray">{day.label}</Text>
-                        </View>
-                    ))
-                }
-
-                {
-                    needed > 0 && (
-                        <Text className="text-center text-gray font-bold my-4">work cycle complete</Text>
-                    )
-                }
-
-                {
-                    upcomingPlanDays.map((day, idx) => (
-                        <View key={`plan-${idx}`} className="mb-6 flex-row items-center ">
-                            <Text className="text-lg text-gray w-[10%]">{day.weekday}</Text>
-                            <Text className="text-lg font-bold text-gray">{day.label}</Text>
-                        </View>
-                    ))
-                }
-
                 <View className='mb-20' />
             </ScrollView>
 
