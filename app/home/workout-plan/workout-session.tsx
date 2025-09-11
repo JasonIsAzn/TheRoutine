@@ -1,24 +1,12 @@
-import { useCallback, useEffect, useState } from 'react';
-import { View, Text, ScrollView, ActivityIndicator, Pressable, TextInput, Alert } from 'react-native';
+import { useCallback, useState } from 'react';
+import { View, Text, ScrollView, ActivityIndicator, Pressable, Alert } from 'react-native';
 import { useWorkoutPlan } from '../../../hooks/useWorkoutPlan';
 import { useAuth } from '../../../contexts/AuthContext';
 import { fetchActiveWorkoutCycle, createWorkoutCycle } from '../../../api/workoutCycle';
 import { fetchWorkoutSessionByDate, createWorkoutSession, markWorkoutSessionAsCompleted } from '../../../api/workoutSession';
-import { fetchSessionExercises, toggleCompleteExercise, toggleSkipExercise, addSessionExercise, softDeleteExercise } from '../../../api/workoutSessionExercise';
-import { fetchBaseExercises } from '../../../api/baseExercise';
-import { Picker } from '@react-native-picker/picker';
-import { BaseExercise } from 'types/workout';
+import { fetchSessionExercises, toggleCompleteExercise, toggleSkipExercise, softDeleteExercise } from '../../../api/workoutSessionExercise';
 import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
 import { useFocusEffect, useRouter } from 'expo-router';
-
-
-interface ExerciseDraft {
-    name: string;
-    muscles: string[];
-    useBaseSelect: boolean;
-    baseExerciseId: number | null;
-    order?: number;
-}
 
 export default function WorkoutSessionScreen() {
     const { user } = useAuth();
@@ -30,16 +18,6 @@ export default function WorkoutSessionScreen() {
     const [session, setSession] = useState<any>(null);
     const [exercises, setExercises] = useState<any[]>([]);
     const [loadingSession, setLoadingSession] = useState(true);
-    const [newExerciseDraft, setNewExerciseDraft] = useState<ExerciseDraft>({
-        name: '',
-        muscles: [''],
-        useBaseSelect: false,
-        baseExerciseId: null,
-    });
-
-    const [showAddForm, setShowAddForm] = useState(false);
-
-    const [baseExercises, setBaseExercises] = useState<BaseExercise[]>([]);
 
     const todayIndex = new Date().getUTCDay();
 
@@ -142,20 +120,6 @@ export default function WorkoutSessionScreen() {
         }, [user, cycle, loadingCycle])
     );
 
-
-    useEffect(() => {
-        const loadBaseExercises = async () => {
-            try {
-                const res = await fetchBaseExercises();
-                setBaseExercises(res);
-            } catch (err) {
-                console.error('Failed to load base exercises:', err);
-            }
-        };
-        loadBaseExercises();
-    }, []);
-
-
     if (planLoading || loadingCycle || !plan || !cycle) {
         return (
             <View className="flex-1 justify-center items-center bg-background">
@@ -227,8 +191,6 @@ export default function WorkoutSessionScreen() {
             </View>
         );
     }
-
-
 
     return (
         <View className='flex-1 relative'>
@@ -345,148 +307,3 @@ export default function WorkoutSessionScreen() {
         </View >
     );
 }
-
-
-//   <Pressable
-//                 className="bg-gray-800 py-2 px-3 rounded mt-4"
-//                 onPress={() => setShowAddForm(true)}
-//             >
-//                 <Text className="text-white text-center text-sm">+ Add Exercise</Text>
-//             </Pressable>
-
-
-
-
-// {showAddForm && (
-//     <View className="mt-4 bg-gray-100 p-4 rounded">
-//         {/* Toggle Manual vs Base Picker */}
-//         <View className="flex-row mb-2 items-center">
-//             <Text className="mr-2">Use Base:</Text>
-//             <Pressable
-//                 className={`px-3 py-1 rounded ${newExerciseDraft.useBaseSelect ? 'bg-green-600' : 'bg-gray-400'}`}
-//                 onPress={() =>
-//                     setNewExerciseDraft((prev) => ({
-//                         ...prev,
-//                         useBaseSelect: !prev.useBaseSelect,
-//                         name: '',
-//                         muscles: [''],
-//                         baseExerciseId: null,
-//                     }))
-//                 }
-//             >
-//                 <Text className="text-white">{newExerciseDraft.useBaseSelect ? 'ON' : 'OFF'}</Text>
-//             </Pressable>
-//         </View>
-
-//         {newExerciseDraft.useBaseSelect ? (
-//             <View className="border border-gray-300 rounded mb-2 bg-white">
-//                 <Picker
-//                     selectedValue={newExerciseDraft.baseExerciseId ?? ''}
-//                     onValueChange={(baseId) => {
-//                         const selected = baseExercises.find((b) => b.id === baseId);
-//                         if (selected) {
-//                             setNewExerciseDraft((prev) => ({
-//                                 ...prev,
-//                                 baseExerciseId: selected.id,
-//                                 name: selected.name,
-//                                 muscles: selected.muscles,
-//                             }));
-//                         }
-//                     }}
-//                 >
-//                     <Picker.Item label="Select Exercise..." value="" />
-//                     {baseExercises.map((base) => (
-//                         <Picker.Item key={base.id} label={base.name} value={base.id} />
-//                     ))}
-//                 </Picker>
-//             </View>
-//         ) : (
-//             <TextInput
-//                 className="border border-gray-300 rounded px-3 py-2 mb-2 bg-white"
-//                 placeholder="Exercise name"
-//                 value={newExerciseDraft.name}
-//                 onChangeText={(text) =>
-//                     setNewExerciseDraft((prev) => ({ ...prev, name: text }))
-//                 }
-//             />
-//         )}
-
-//         {newExerciseDraft.muscles.map((muscle, idx) => (
-//             <View key={idx} className="flex-row items-center mb-2">
-//                 <TextInput
-//                     className="flex-1 border border-gray-300 rounded px-3 py-2 bg-white"
-//                     placeholder={`Muscle ${idx + 1}`}
-//                     value={muscle}
-//                     onChangeText={(text) => {
-//                         const updated = [...newExerciseDraft.muscles];
-//                         updated[idx] = text;
-//                         setNewExerciseDraft((prev) => ({ ...prev, muscles: updated }));
-//                     }}
-//                 />
-//                 <Pressable
-//                     className="ml-2 px-2 py-1 bg-red-500 rounded"
-//                     onPress={() => {
-//                         const updated = newExerciseDraft.muscles.filter((_, i) => i !== idx);
-//                         setNewExerciseDraft((prev) => ({ ...prev, muscles: updated }));
-//                     }}
-//                 >
-//                     <Text className="text-white">X</Text>
-//                 </Pressable>
-//             </View>
-//         ))}
-
-//         <Pressable
-//             className="mb-2 px-3 py-2 bg-blue-600 rounded"
-//             onPress={() =>
-//                 setNewExerciseDraft((prev) => ({
-//                     ...prev,
-//                     muscles: [...prev.muscles, ''],
-//                 }))
-//             }
-//         >
-//             <Text className="text-white text-sm text-center">+ Add Muscle</Text>
-//         </Pressable>
-
-//         <Pressable
-//             className="bg-green-600 px-3 py-2 rounded"
-//             onPress={async () => {
-//                 const newExercise = {
-//                     workoutSessionId: session.id,
-//                     name: newExerciseDraft.name,
-//                     muscles: newExerciseDraft.muscles.filter((m) => m.trim() !== ''),
-//                     order: newExerciseDraft.order ?? exercises.length,
-//                     isOptional: true,
-//                     isCompleted: false,
-//                     isSkipped: false,
-//                     isDeleted: false,
-//                     weight: null,
-//                     baseExerciseId: newExerciseDraft.baseExerciseId ?? null,
-//                 };
-
-//                 const created = await addSessionExercise(newExercise);
-
-//                 let updatedExercises = await fetchSessionExercises(session.id);
-
-
-//                 updatedExercises = updatedExercises
-//                     .filter((e: SessionExercise) => !e.isDeleted)
-//                     .sort((a: SessionExercise, b: SessionExercise) => a.order - b.order);
-
-
-//                 for (let i = 0; i < updatedExercises.length; i++) {
-//                     if (updatedExercises[i].order !== i) {
-//                         updatedExercises[i].order = i;
-//                         await addSessionExercise({ ...updatedExercises[i], id: updatedExercises[i].id });
-//                     }
-//                 }
-
-//                 setExercises(updatedExercises);
-//                 setNewExerciseDraft({ name: '', muscles: [''], useBaseSelect: false, baseExerciseId: null });
-//                 setShowAddForm(false);
-//             }}
-//         >
-//             <Text className="text-white text-center text-sm">Save Exercise</Text>
-//         </Pressable>
-
-//     </View>
-// )}
